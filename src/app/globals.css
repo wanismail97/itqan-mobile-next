@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   iTQAN Mobile — Global Styles
+   ============================================ */
+
+/* --- Base Layer --- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply font-inter antialiased text-gray-900 bg-white;
+  }
+
+  ::selection {
+    @apply bg-accent/30 text-primary;
+  }
+}
+
+/* --- Component Layer --- */
+@layer components {
+  .nav-sticky {
+    transition: all 0.3s ease;
+  }
+
+  .hamburger-line {
+    transition: all 0.3s ease;
+  }
+
+  .wa-pulse {
+    animation: pulse-wa 2s infinite;
+  }
+}
+
+/* --- Custom Keyframes (Tailwind v3 doesn't support @keyframes in config-only) --- */
+@keyframes pulse-wa {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* --- Airtable Image Fallback --- */
+.airtable-img {
+  @apply w-full h-full object-cover;
+}
+
+/* --- Skeleton Loading --- */
+.skeleton {
+  @apply bg-gray-200 animate-pulse rounded;
+}
