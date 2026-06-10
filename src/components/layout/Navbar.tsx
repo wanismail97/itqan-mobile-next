@@ -1,12 +1,17 @@
 // ─── Navbar — Fixed top navigation bar with cart indicator ─────────────────
 "use client";
 
+import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { navLinks } from "@/lib/config";
 import Link from "next/link";
 
 export default function Navbar() {
   const { itemCount } = useCart();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const closeMobile = () => setMobileOpen(false);
+  const toggleMobile = () => setMobileOpen((prev) => !prev);
 
   return (
     <nav
@@ -17,7 +22,10 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="/" className="text-2xl font-bold text-accent hover:text-accent/90 transition-colors">
+            <Link
+              href="/"
+              className="text-2xl font-bold text-accent hover:text-accent/90 transition-colors"
+            >
               iTQAN Mobile
             </Link>
           </div>
@@ -28,10 +36,10 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-              className="text-white/80 hover:text-accent transition-all duration-300 ease-out font-medium text-sm tracking-wide"
-            >
+                className="text-white/80 hover:text-accent transition-all duration-300 ease-out font-medium text-sm tracking-wide"
+              >
                 {link.label}
-            </Link>
+              </Link>
             ))}
             {/* Cart Icon */}
             <Link
@@ -90,7 +98,7 @@ export default function Navbar() {
             </Link>
 
             <button
-              id="mobile-menu-btn"
+              onClick={toggleMobile}
               className="text-white/80 focus:outline-none hover:text-accent transition-colors"
               aria-label="Toggle menu"
             >
@@ -101,11 +109,10 @@ export default function Navbar() {
                 viewBox="0 0 24 24"
               >
                 <path
-                  className="hamburger-line"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
+                  d={mobileOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
                 />
               </svg>
             </button>
@@ -115,16 +122,18 @@ export default function Navbar() {
 
       {/* Mobile Menu Panel */}
       <div
-        id="mobile-menu"
-        className="hidden md:hidden bg-primary/95 backdrop-blur-md overflow-hidden transition-all duration-500 max-h-0"
+        className={`md:hidden bg-primary/95 backdrop-blur-md overflow-hidden transition-all duration-300 ${
+          mobileOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        }`}
       >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           {navLinks.map((link) => (
-          <Link
+            <Link
               key={link.href}
               href={link.href}
-            className="block px-3 py-2.5 text-white/80 hover:text-accent transition-all duration-300 ease-out font-medium text-sm"
-          >
+              onClick={closeMobile}
+              className="block px-3 py-2.5 text-white/80 hover:text-accent transition-all duration-300 ease-out font-medium text-sm"
+            >
               {link.label}
             </Link>
           ))}
