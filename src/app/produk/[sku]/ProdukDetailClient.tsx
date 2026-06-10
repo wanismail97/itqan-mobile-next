@@ -94,6 +94,19 @@ export default function ProdukDetailClient({ product, allProducts, waPhone }: Pr
     return () => observer.disconnect();
   }, []);
 
+  // ─── Notify floating buttons of sticky bar height ──────────────────
+  useEffect(() => {
+    const root = document.documentElement;
+    // Mobile: ~150px, Desktop: ~76px
+    const height = typeof window !== "undefined" && window.innerWidth < 640
+      ? "150px"
+      : "76px";
+    root.style.setProperty("--sticky-bar-h", showSticky ? height : "0px");
+    return () => {
+      root.style.setProperty("--sticky-bar-h", "0px");
+    };
+  }, [showSticky]);
+
   const hasPromo = product["Harga Promo RM"] != null;
   const displayPrice = hasPromo ? product["Harga Promo RM"]! : product["Harga RM"];
   const inStock = product.Stok > 0;
@@ -787,52 +800,57 @@ export default function ProdukDetailClient({ product, allProducts, waPhone }: Pr
               </div>
             </div>
 
-            {/* Mobile layout */}
-            <div className="sm:hidden space-y-2">
-              <div className="flex items-center gap-2">
+            {/* Mobile layout — taller, more spacious */}
+            <div className="sm:hidden space-y-3">
+              <div className="flex items-center gap-3">
                 {product["Gambar URL"] && (
                   <img
                     src={product["Gambar URL"]}
                     alt={product.Nama}
-                    className="w-10 h-10 rounded-lg object-cover border border-gray-100 flex-shrink-0"
+                    className="w-12 h-12 rounded-xl object-cover border border-gray-100 flex-shrink-0"
                   />
                 )}
                 <div className="min-w-0 flex-1">
-                  <span className="text-xs font-semibold text-primary truncate block leading-tight">
+                  <span className="text-sm font-semibold text-primary truncate block leading-snug">
                     {product.Nama}
                   </span>
-                  <span className="text-xs text-gray-400">
-                    RM{displayPrice.toLocaleString("ms-MY")}
-                    {inStock ? ` · ${product.Stok} unit` : " · Stok habis"}
-                  </span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-base font-bold text-accent">
+                      RM{displayPrice.toLocaleString("ms-MY")}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {inStock ? `${product.Stok} unit tersedia` : "Stok habis"}
+                    </span>
+                  </div>
                 </div>
-                {/* Quantity selector */}
+              </div>
+
+              {/* Quantity + Buttons row */}
+              <div className="flex items-center gap-3">
                 <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-2.5 py-1 text-gray-600 hover:bg-gray-50 transition text-sm"
+                    className="px-3 py-2 text-gray-600 hover:bg-gray-50 transition text-base font-medium min-w-[36px]"
                     aria-label="Kurang"
                   >
                     −
                   </button>
-                  <span className="px-2.5 py-1 font-semibold text-xs border-x border-gray-200 bg-gray-50 min-w-[2rem] text-center">
+                  <span className="px-4 py-2 font-semibold text-sm border-x border-gray-200 bg-gray-50 min-w-[2.5rem] text-center">
                     {quantity}
                   </span>
                   <button
                     onClick={() => setQuantity(Math.min(product.Stok, quantity + 1))}
                     disabled={quantity >= product.Stok}
-                    className="px-2.5 py-1 text-gray-600 hover:bg-gray-50 transition text-sm disabled:opacity-30"
+                    className="px-3 py-2 text-gray-600 hover:bg-gray-50 transition text-base font-medium min-w-[36px] disabled:opacity-30"
                     aria-label="Tambah"
                   >
                     +
                   </button>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
                 <button
                   onClick={handleStickyAddToCart}
                   disabled={!inStock}
-                  className={`btn-premium flex-1 py-2.5 rounded-xl font-semibold text-xs min-h-[40px] ${
+                  className={`btn-premium flex-1 py-3 rounded-xl font-semibold text-sm min-h-[48px] ${
                     added
                       ? "bg-green-500 text-white"
                       : "bg-primary text-white hover:bg-primary/90"
@@ -843,7 +861,7 @@ export default function ProdukDetailClient({ product, allProducts, waPhone }: Pr
                 <button
                   onClick={handleStickyBuyNow}
                   disabled={!inStock}
-                  className="btn-premium flex-1 py-2.5 rounded-xl text-xs font-semibold border-2 border-accent text-accent hover:bg-accent hover:text-primary min-h-[40px] text-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-premium flex-1 py-3 rounded-xl text-sm font-semibold border-2 border-accent text-accent hover:bg-accent hover:text-primary min-h-[48px] text-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Beli Sekarang
                 </button>
