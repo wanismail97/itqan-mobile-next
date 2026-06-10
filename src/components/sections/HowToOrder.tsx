@@ -29,19 +29,20 @@ const steps = [
 
 export default function HowToOrder() {
   return (
-    <section className="py-16 px-4 bg-[#f8fafc]">
+    <section className="section-spacing px-4 bg-[#f8fafc]">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-2xl font-bold text-center text-primary mb-10">
+        <h2 className="text-2xl md:text-3xl font-bold text-center text-primary mb-10">
           📋 Cara Order, Senang Je!
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {steps.map((step) => (
-            <div key={step.number} className="text-center">
-              <div className="w-12 h-12 bg-accent text-white rounded-full flex items-center justify-center font-bold mx-auto mb-3">
+            <div key={step.number} className="text-center group">
+              <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 transition-all duration-300 ease-out group-hover:bg-accent group-hover:scale-110 group-hover:shadow-lg">
                 {step.number}
               </div>
-              <p className="text-sm text-center text-gray-700">
+              <h3 className="font-semibold text-primary mb-2">{step.title}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
                 {step.description}
               </p>
             </div>

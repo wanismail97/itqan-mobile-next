@@ -10,6 +10,8 @@ import type {
   ServisFields,
   PesananFields,
   ItemPesananFields,
+  ReviewFields,
+  Review,
 } from "@/types/airtable";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -530,4 +532,86 @@ export async function deductStockForOrderItems(items: ItemPesananFields[]): Prom
   }
 
   return allSucceeded;
+}
+
+// ─── Reviews ──────────────────────────────────────────────────────────────────
+
+/**
+ * Create a new review in Airtable Reviews table.
+ * Status is automatically set to "Pending".
+ * Automatically fetches the product name from the Produk table using the SKU.
+ */
+export async function createReview(
+  sku: string,
+  nama: string,
+  telefon: string,
+  rating: number,
+  review: string
+): Promise<boolean> {
+  try {
+    // ─── Fetch product name for reference ────────────────────────────
+    let productNama = "";
+    try {
+      const product = await getProductBySku(sku);
+      if (product) productNama = product.Nama;
+    } catch {
+      // If product lookup fails, still proceed without the name
+    }
+
+    const url = `${BASE_URL}/${encodeURIComponent(tables.reviews)}`;
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        records: [
+          {
+            fields: {
+              "Produk SKU": sku,
+              "Produk Nama": productNama,
+              Nama: nama,
+              Telefon: telefon,
+              Rating: rating,
+              Review: review,
+              Status: "Pending",
+              Tarikh: today,
+            },
+          },
+        ],
+      }),
+    });
+
+    if (!res.ok) {
+      console.error("Airtable createReview error:", await res.text());
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error("Airtable createReview exception:", err);
+    return false;
+  }
+}
+
+/**
+ * Fetch approved reviews for a given product SKU.
+ * Only returns reviews with Status = "Approved".
+ * Sorted by Tarikh descending (newest first).
+ */
+export async function getApprovedReviewsBySku(sku: string): Promise<Review[]> {
+  try {
+    const data = await fetchTable<ReviewFields>(tables.reviews, {
+      filterByFormula: `AND({Status} = "Approved", {Produk SKU} = "${sku.replace(/"/g, '\\"')}")`,
+      sort: [{ field: "Tarikh", direction: "desc" }],
+    });
+
+    return data.records.map((r) => ({
+      airtableId: r.id,
+      ...r.fields,
+    }));
+  } catch (err) {
+    console.error("Airtable getApprovedReviewsBySku error:", err);
+    return [];
+  }
 }

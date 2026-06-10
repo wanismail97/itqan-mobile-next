@@ -14,23 +14,23 @@ export default function FeaturedProducts({ products }: Props) {
   }
 
   return (
-    <section className="py-16 px-4 bg-[#f8fafc]">
+    <section className="section-spacing px-4 bg-[#f8fafc]">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-2xl font-bold text-center text-primary mb-10">
+        <h2 className="text-2xl md:text-3xl font-bold text-center text-primary mb-10">
           🔥 Produk Terlaris Minggu Ini
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map((product) => (
             <ProductCard key={product.airtableId} product={product} />
           ))}
         </div>
 
         {/* Lihat Semua button */}
-        <div className="text-center mt-10">
+        <div className="text-center mt-12">
           <Link
             href="/produk"
-            className="inline-block bg-accent text-primary px-8 py-3 rounded-full font-semibold hover:bg-accent/90 transition duration-300 transform hover:scale-105"
+            className="btn-premium inline-block bg-accent text-primary px-10 py-3.5 rounded-full font-semibold hover:bg-accent/90 shadow-md hover:shadow-accent/20 min-h-[44px]"
           >
             Lihat Semua Produk
           </Link>

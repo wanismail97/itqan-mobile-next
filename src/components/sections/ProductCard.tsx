@@ -104,36 +104,55 @@ export default function ProductCard({ product }: Props) {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition duration-300 flex flex-col">
+      <div className="card-premium card-hover border border-gray-100 rounded-2xl flex flex-col group">
         {/* Image Container — clickable to product detail */}
-        <Link href={productUrl} className="block h-48 relative bg-gray-300">
+        <Link href={productUrl} className="block h-52 relative bg-gray-100 overflow-hidden rounded-t-2xl">
           {product["Gambar URL"] ? (
             <img
               src={product["Gambar URL"]}
               alt={product.Nama}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
             />
           ) : (
             <ProductPlaceholder label={product.Nama} />
           )}
+          {/* Kategori badge */}
+          {product.Kategori && (
+            <span className="badge-kategori absolute top-3 left-3">
+              {product.Kategori}
+            </span>
+          )}
+          {/* Promo badge */}
+          {hasPromo && (
+            <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                  Promo
+            </span>
+          )}
+          {/* Stock indicator dot */}
+          <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+            <span className={`w-2 h-2 rounded-full ${inStock ? 'bg-green-500' : 'bg-red-500'}`} />
+            <span className="text-xs font-medium text-white drop-shadow-md">
+              {inStock ? `Stok: ${product.Stok}` : "Stok Habis"}
+            </span>
+          </div>
         </Link>
 
         {/* Content */}
-        <div className="p-4 flex flex-col flex-1">
+        <div className="p-5 flex flex-col flex-1">
           {/* Product Name — clickable */}
           <Link href={productUrl}>
-            <h3 className="font-semibold text-primary mb-1 hover:text-accent transition line-clamp-2">
+            <h3 className="font-semibold text-primary mb-1.5 hover:text-accent transition line-clamp-2 text-sm leading-snug">
               {product.Nama}
             </h3>
           </Link>
 
           {/* Brand and SKU */}
-          <p className="text-xs text-gray-500 mb-1">
+          <p className="text-xs text-gray-400 mb-2">
             {product.Jenama} &middot; {product.SKU}
           </p>
 
           {/* Price Section */}
-          <div className="mb-1">
+          <div className="mb-2">
             {hasPromo ? (
               <div className="flex items-baseline gap-2">
                 <span className="text-lg font-bold text-accent">
@@ -152,27 +171,18 @@ export default function ProductCard({ product }: Props) {
 
           {/* Waranti badge (if available) */}
           {product.Waranti && (
-            <span className="inline-block bg-accent/20 text-accent text-xs px-2 py-1 rounded-full mb-2 self-start">
+            <span className="inline-block bg-accent/10 text-accent text-[11px] px-2.5 py-1 rounded-full mb-3 self-start font-medium">
               {product.Waranti}
             </span>
           )}
 
-          {/* Stock status */}
-          <p
-            className={`text-xs mb-3 ${
-              inStock ? "text-green-600" : "text-red-500"
-            }`}
-          >
-            {inStock ? `Stok: ${product.Stok}` : "Stok Habis"}
-          </p>
-
           {/* Action Buttons */}
-          <div className="mt-auto space-y-2">
+          <div className="mt-auto space-y-2.5">
             {/* Tambah ke Bakul */}
             <button
               onClick={handleAddToCart}
               disabled={!inStock}
-              className={`w-full py-2 rounded-lg font-semibold transition duration-300 ${
+              className={`btn-premium w-full py-2.5 rounded-xl font-semibold text-sm min-h-[44px] ${
                 added
                   ? "bg-green-500 text-white"
                   : "bg-primary text-white hover:bg-primary/90"
@@ -185,7 +195,7 @@ export default function ProductCard({ product }: Props) {
             <Link
               href={`/checkout?sku=${product.SKU}&qty=1`}
               onClick={handleBuyNowClick}
-              className={`block w-full text-center py-2 rounded-lg border-2 border-accent text-accent font-semibold hover:bg-accent hover:text-primary transition duration-300 ${
+              className={`btn-premium block w-full text-center py-2.5 rounded-xl border-2 border-accent text-accent font-semibold hover:bg-accent hover:text-primary text-sm min-h-[44px] ${
                 !inStock ? "pointer-events-none opacity-50" : ""
               }`}
             >
@@ -200,11 +210,11 @@ export default function ProductCard({ product }: Props) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Overlay */}
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setModalOpen(false)}
           />
           {/* Modal */}
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 z-10">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 z-10 animate-in fade-in zoom-in-95">
             <h3 className="text-lg font-semibold text-primary mb-1">
               Pilih Variasi
             </h3>
@@ -216,10 +226,10 @@ export default function ProductCard({ product }: Props) {
                 <button
                   key={opt}
                   onClick={() => setSelectedVariasi(opt)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition duration-200 ${
+                  className={`px-5 py-2.5 rounded-xl text-sm font-medium border-2 transition-all duration-200 min-h-[44px] ${
                     selectedVariasi === opt
-                      ? "border-accent bg-accent/10 text-accent"
-                      : "border-gray-300 text-gray-600 hover:border-gray-400"
+                      ? "border-accent bg-accent/10 text-accent shadow-sm"
+                      : "border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
                   }`}
                 >
                   {opt}
@@ -234,7 +244,7 @@ export default function ProductCard({ product }: Props) {
                 <button
                   onClick={() => setModalQty(Math.max(1, modalQty - 1))}
                   disabled={modalQty <= 1}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition text-lg font-medium disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100 transition text-lg font-medium disabled:opacity-30 disabled:cursor-not-allowed"
                   aria-label="Kurang"
                 >
                   &minus;
@@ -245,12 +255,12 @@ export default function ProductCard({ product }: Props) {
                   max={product.Stok}
                   value={modalQty}
                   onChange={(e) => handleModalQtyChange(e.target.value)}
-                  className="w-14 h-9 text-center rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm font-medium [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  className="w-16 h-10 text-center rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm font-medium [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
                 <button
                   onClick={() => setModalQty(Math.min(product.Stok, modalQty + 1))}
                   disabled={modalQty >= product.Stok}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition text-lg font-medium disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100 transition text-lg font-medium disabled:opacity-30 disabled:cursor-not-allowed"
                   aria-label="Tambah"
                 >
                   +
@@ -281,14 +291,14 @@ export default function ProductCard({ product }: Props) {
             <div className="flex gap-3">
               <button
                 onClick={() => setModalOpen(false)}
-                className="flex-1 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition"
+                className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition min-h-[44px]"
               >
                 Batal
               </button>
               <button
                 onClick={modalMode === "cart" ? handleModalAddToCart : handleModalBuyNow}
                 disabled={!selectedVariasi || !inStock}
-                className="flex-1 py-2.5 rounded-lg bg-accent text-primary font-semibold hover:bg-accent/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-premium flex-1 py-3 rounded-xl bg-accent text-primary font-semibold hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
               >
                 {modalMode === "cart" ? "Tambah ke Bakul" : "Beli Sekarang"} &bull; RM{modalTotal.toLocaleString("ms-MY")}
               </button>

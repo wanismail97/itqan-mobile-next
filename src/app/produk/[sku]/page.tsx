@@ -4,7 +4,7 @@
 // Returns 404 via notFound() if SKU does not exist in Airtable.
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProductBySku } from "@/lib/airtable";
+import { getProductBySku, getAllProducts } from "@/lib/airtable";
 import { siteConfig } from "@/lib/config";
 import ProdukDetailClient from "./ProdukDetailClient";
 
@@ -37,7 +37,10 @@ export const dynamic = "force-dynamic";
 
 export default async function ProdukDetailPage({ params }: Props) {
   const { sku } = await params;
-  const product = await getProductBySku(sku);
+  const [product, allProducts] = await Promise.all([
+    getProductBySku(sku),
+    getAllProducts(),
+  ]);
 
   if (!product) {
     notFound();
@@ -46,6 +49,7 @@ export default async function ProdukDetailPage({ params }: Props) {
   return (
     <ProdukDetailClient
       product={product}
+      allProducts={allProducts}
       waPhone={siteConfig.contact.phoneRaw}
     />
   );

@@ -11,13 +11,13 @@ export default function Navbar() {
   return (
     <nav
       id="navbar"
-      className="fixed top-0 left-0 right-0 z-50 bg-primary/90 backdrop-blur-sm nav-sticky"
+      className="fixed top-0 left-0 right-0 z-50 bg-primary/90 backdrop-blur-md nav-sticky"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="/" className="text-2xl font-bold text-accent">
+            <Link href="/" className="text-2xl font-bold text-accent hover:text-accent/90 transition-colors">
               iTQAN Mobile
             </Link>
           </div>
@@ -28,7 +28,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-              className="text-white hover:text-accent transition duration-300 font-medium"
+              className="text-white/80 hover:text-accent transition-all duration-300 ease-out font-medium text-sm tracking-wide"
             >
                 {link.label}
             </Link>
@@ -36,7 +36,7 @@ export default function Navbar() {
             {/* Cart Icon */}
             <Link
               href="/cart"
-              className="relative text-white hover:text-accent transition duration-300"
+              className="relative text-white/80 hover:text-accent transition-all duration-300 ease-out"
               aria-label="Cart"
             >
               <svg
@@ -54,7 +54,7 @@ export default function Navbar() {
                 />
               </svg>
               {itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-accent text-primary text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-accent text-primary text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-in zoom-in">
                   {itemCount > 99 ? "99+" : itemCount}
                 </span>
               )}
@@ -65,7 +65,7 @@ export default function Navbar() {
           <div className="md:hidden flex items-center gap-3">
             <Link
               href="/cart"
-              className="relative text-white"
+              className="relative text-white/80 hover:text-accent transition-colors"
               aria-label="Cart"
             >
               <svg
@@ -91,7 +91,7 @@ export default function Navbar() {
 
             <button
               id="mobile-menu-btn"
-              className="text-white focus:outline-none"
+              className="text-white/80 focus:outline-none hover:text-accent transition-colors"
               aria-label="Toggle menu"
             >
               <svg
@@ -116,14 +116,14 @@ export default function Navbar() {
       {/* Mobile Menu Panel */}
       <div
         id="mobile-menu"
-        className="hidden md:hidden bg-primary/95 backdrop-blur-sm overflow-hidden transition-all duration-500 max-h-0"
+        className="hidden md:hidden bg-primary/95 backdrop-blur-md overflow-hidden transition-all duration-500 max-h-0"
       >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           {navLinks.map((link) => (
           <Link
               key={link.href}
               href={link.href}
-            className="block px-3 py-2 text-white hover:text-accent transition duration-300 font-medium"
+            className="block px-3 py-2.5 text-white/80 hover:text-accent transition-all duration-300 ease-out font-medium text-sm"
           >
               {link.label}
             </Link>
@@ -133,4 +133,3 @@ export default function Navbar() {
     </nav>
   );
 }
-

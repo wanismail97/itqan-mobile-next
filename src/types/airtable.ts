@@ -31,6 +31,8 @@ export interface ProdukFields {
   Variasi?: string | string[];
   /** Whether this product is featured / highlighted */
   Ditonjolkan: boolean;
+  /** Product highlights / key selling points — one per line (Long Text) */
+  Highlights?: string;
 }
 
 /** A product record with its Airtable ID merged in */
@@ -113,6 +115,33 @@ export interface ItemPesananFields {
 }
 
 export interface ItemPesanan extends ItemPesananFields {
+  airtableId: string;
+}
+
+// ─── Reviews Table ───────────────────────────────────────────────────────────
+
+/** Raw fields from the `Reviews` Airtable table */
+export interface ReviewFields {
+  /** Product SKU this review belongs to */
+  "Produk SKU": string;
+  /** Customer name */
+  Nama: string;
+  /** Customer phone number */
+  Telefon: string;
+  /** Rating 1-5 */
+  Rating: number;
+  /** Review text */
+  Review: string;
+  /** Status: Pending / Approved */
+  Status: string;
+  /** Review date (ISO string) */
+  Tarikh: string;
+  /** Admin notes (optional) */
+  "Admin Notes"?: string;
+}
+
+/** A review record with its Airtable ID merged in */
+export interface Review extends ReviewFields {
   airtableId: string;
 }
 

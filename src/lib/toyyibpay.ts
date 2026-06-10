@@ -54,6 +54,8 @@ export async function createBill(params: {
     billPhone: params.telepon,
     billExpiryDate: "",
     billExpiryDays: "7",
+    enableDuitNowQR: "1",
+    chargeDuitNowQR: "0",
   });
 
   try {

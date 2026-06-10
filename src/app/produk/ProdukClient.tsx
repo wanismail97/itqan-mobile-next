@@ -81,18 +81,18 @@ export default function ProdukClient({ products, jenamaList }: Props) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Page Title */}
           <h1 className="text-2xl md:text-3xl font-bold text-primary mb-6">
-            Semua Produk
+            {kategori !== "Semua" ? kategori : "Semua Produk"}
           </h1>
 
-          {/* ─── Search Bar ──────────────────────────────────────────── */}
-          <div className="mb-6">
-            <div className="relative max-w-md">
+          {/* ─── Search & Filters ──────────────────────────────────────── */}
+          <div className="flex flex-wrap items-center gap-4 mb-6">
+            <div className="relative w-full sm:flex-1 sm:max-w-md">
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Cari produk, SKU, atau jenama..."
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all duration-200 bg-white shadow-sm"
               />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -112,17 +112,17 @@ export default function ProdukClient({ products, jenamaList }: Props) {
           </div>
 
           {/* ─── Filter Chips ─────────────────────────────────────────── */}
-          <div className="flex flex-wrap gap-3 mb-6 items-center">
+          <div className="flex flex-wrap gap-2 mb-6 items-center">
             {/* Kategori filter */}
             <div className="flex flex-wrap gap-2">
               {KATEGORI_LIST.map((kat) => (
                 <button
                   key={kat}
                   onClick={() => setKategori(kat)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ease-out min-h-[40px] ${
                     kategori === kat
-                      ? "bg-accent text-primary"
-                      : "bg-white text-gray-700 border border-gray-300 hover:border-accent"
+                      ? "bg-accent text-primary shadow-sm"
+                      : "bg-white text-gray-600 border border-gray-200 hover:border-accent hover:text-accent shadow-sm"
                   }`}
                 >
                   {kat}
@@ -134,7 +134,7 @@ export default function ProdukClient({ products, jenamaList }: Props) {
             <select
               value={jenama}
               onChange={(e) => setJenama(e.target.value)}
-              className="px-4 py-2 rounded-full text-sm font-medium bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent"
+              className="px-4 py-2 rounded-xl text-sm font-medium bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent shadow-sm transition-all duration-200 min-h-[40px]"
             >
               <option value="Semua">Semua Jenama</option>
               {jenamaList.map((j) => (
@@ -148,9 +148,9 @@ export default function ProdukClient({ products, jenamaList }: Props) {
             {(search || kategori !== "Semua" || jenama !== "Semua") && (
               <button
                 onClick={resetFilters}
-                className="text-sm text-gray-500 hover:text-accent underline"
+                className="text-sm text-gray-400 hover:text-accent transition-colors underline ml-1"
               >
-                Reset Filter
+                Reset
               </button>
             )}
           </div>

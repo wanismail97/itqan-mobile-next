@@ -498,7 +498,6 @@ export default function CheckoutClient() {
                         type="text"
                         value={form.nama}
                         onChange={(e) => updateField("nama", e.target.value)}
-                        placeholder="Ahmad bin Abdullah"
                         required
                         className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                       />
@@ -512,7 +511,6 @@ export default function CheckoutClient() {
                         type="tel"
                         value={form.telepon}
                         onChange={(e) => updateField("telepon", e.target.value)}
-                        placeholder="012-3456789"
                         required
                         className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                       />
@@ -526,7 +524,6 @@ export default function CheckoutClient() {
                         type="email"
                         value={form.email}
                         onChange={(e) => updateField("email", e.target.value)}
-                        placeholder="contoh@email.com"
                         required
                         className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                       />
@@ -547,7 +544,6 @@ export default function CheckoutClient() {
                           <textarea
                             value={form.alamat}
                             onChange={(e) => updateField("alamat", e.target.value)}
-                            placeholder="No. 12, Jalan Harmoni 5, Taman Desa"
                             required
                             rows={2}
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
@@ -563,7 +559,6 @@ export default function CheckoutClient() {
                               type="text"
                               value={form.bandar}
                               onChange={(e) => updateField("bandar", e.target.value)}
-                              placeholder="Kuala Lumpur"
                               required
                               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                             />
@@ -576,7 +571,6 @@ export default function CheckoutClient() {
                               type="text"
                               value={form.poskod}
                               onChange={(e) => handlePoskodChange(e.target.value)}
-                              placeholder="58100"
                               maxLength={5}
                               required
                               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
@@ -592,7 +586,6 @@ export default function CheckoutClient() {
                             type="text"
                             value={form.negeri}
                             onChange={(e) => updateField("negeri", e.target.value)}
-                            placeholder="Wilayah Persekutuan"
                             required
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                           />
