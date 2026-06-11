@@ -1,9 +1,8 @@
-// ─── Related Products — Tabbed section below reviews ──────────────────────
-// Tab 1: Produk Berkaitan (same kategori → same jenama → other active)
-// Tab 2: Produk Lain (featured → random active, excluding already-shown)
+// ─── Related Products — Auto-scrolling carousel with tabs ──────────────────
+// Tab 1: Produk Berkaitan. Tab 2: Produk Lain. Auto-scroll infinite carousel.
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import type { Produk } from "@/types/airtable";
 import ProductCard from "./ProductCard";
 
@@ -14,6 +13,8 @@ interface Props {
 
 export default function RelatedProducts({ currentSku, allProducts }: Props) {
   const [activeTab, setActiveTab] = useState<"related" | "other">("related");
+  const [isPaused, setIsPaused] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { related, other } = useMemo(() => {
     const current = allProducts.find((p) => p.SKU === currentSku);
@@ -25,30 +26,27 @@ export default function RelatedProducts({ currentSku, allProducts }: Props) {
     const used = new Set<string>();
 
     if (current) {
-      // Priority 1: Same kategori
       const sameKategori = active.filter(
         (p) => p.Kategori === current.Kategori && !used.has(p.SKU)
       );
       for (const p of sameKategori) {
-        if (related.length >= 4) break;
+        if (related.length >= 8) break;
         related.push(p);
         used.add(p.SKU);
       }
 
-      // Priority 2: Same jenama
       const sameJenama = active.filter(
         (p) => p.Jenama === current.Jenama && !used.has(p.SKU)
       );
       for (const p of sameJenama) {
-        if (related.length >= 4) break;
+        if (related.length >= 8) break;
         related.push(p);
         used.add(p.SKU);
       }
     }
 
-    // Priority 3: Any remaining active (fill to 4)
     for (const p of active) {
-      if (related.length >= 4) break;
+      if (related.length >= 8) break;
       if (!used.has(p.SKU)) {
         related.push(p);
         used.add(p.SKU);
@@ -59,17 +57,15 @@ export default function RelatedProducts({ currentSku, allProducts }: Props) {
     const other: Produk[] = [];
     const otherUsed = new Set<string>();
 
-    // First: featured products
     const featured = active.filter((p) => p.Ditonjolkan && !otherUsed.has(p.SKU));
     for (const p of featured) {
-      if (other.length >= 4) break;
+      if (other.length >= 8) break;
       other.push(p);
       otherUsed.add(p.SKU);
     }
 
-    // Then: fill remaining with active products not in related
     for (const p of active) {
-      if (other.length >= 4) break;
+      if (other.length >= 8) break;
       if (!otherUsed.has(p.SKU)) {
         other.push(p);
         otherUsed.add(p.SKU);
@@ -80,6 +76,33 @@ export default function RelatedProducts({ currentSku, allProducts }: Props) {
   }, [allProducts, currentSku]);
 
   const products = activeTab === "related" ? related : other;
+
+  // Duplicate array for seamless infinite scroll
+  const duplicated = useMemo(
+    () => [...products, ...products],
+    [products]
+  );
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (isPaused) {
+      el.style.animationPlayState = "paused";
+    } else {
+      el.style.animationPlayState = "running";
+    }
+  }, [isPaused]);
+
+  // Restart animation when tab changes
+  const switchTab = useCallback((tab: "related" | "other") => {
+    setActiveTab(tab);
+    const el = scrollRef.current;
+    if (el) {
+      el.style.animation = "none";
+      void el.offsetHeight; // force reflow
+      el.style.animation = "";
+    }
+  }, []);
 
   if (products.length === 0) return null;
 
@@ -96,48 +119,53 @@ export default function RelatedProducts({ currentSku, allProducts }: Props) {
       </div>
 
       {/* ─── Tab Headers ─────────────────────────────────────────────── */}
-      <div className="flex justify-center border-b border-gray-200 mb-10">
+      <div className="flex justify-center gap-1 mb-10 border-b border-gray-200">
         <button
-          onClick={() => setActiveTab("related")}
-          className={`px-5 py-3.5 text-sm font-semibold rounded-t-xl transition-colors min-h-[48px] ${
-            activeTab === "related"
-              ? "bg-primary text-white"
-              : "bg-transparent text-gray-500 hover:text-primary border border-b-0 border-gray-200"
-          }`}
+          onClick={() => switchTab("related")}
+          className={`relative px-6 py-3 text-sm font-semibold transition-all duration-300 ease-out min-h-[44px] rounded-t-sm
+            ${
+              activeTab === "related"
+                ? "bg-primary text-white -translate-y-0.5 shadow-md shadow-primary/15 z-10"
+                : "bg-transparent text-gray-400 hover:text-primary hover:bg-gray-50"
+            }`}
         >
           Produk Berkaitan
         </button>
         <button
-          onClick={() => setActiveTab("other")}
-          className={`px-5 py-3.5 text-sm font-semibold rounded-t-xl transition-colors min-h-[48px] ${
-            activeTab === "other"
-              ? "bg-primary text-white"
-              : "bg-transparent text-gray-500 hover:text-primary border border-b-0 border-gray-200"
-          }`}
+          onClick={() => switchTab("other")}
+          className={`relative px-6 py-3 text-sm font-semibold transition-all duration-300 ease-out min-h-[44px] rounded-t-sm
+            ${
+              activeTab === "other"
+                ? "bg-primary text-white -translate-y-0.5 shadow-md shadow-primary/15 z-10"
+                : "bg-transparent text-gray-400 hover:text-primary hover:bg-gray-50"
+            }`}
         >
           Produk Lain
         </button>
       </div>
 
-      {/* ─── Mobile: Horizontal scroll ───────────────────────────────── */}
-      <div className="md:hidden -mx-1 px-1">
-        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4">
-          {products.map((p) => (
+      {/* ─── Auto-scrolling Carousel ─────────────────────────────────── */}
+      <div
+        className="relative overflow-hidden py-2"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
+      >
+        <div
+          ref={scrollRef}
+          className="flex animate-scroll gap-6"
+          style={{ width: "max-content" }}
+        >
+          {duplicated.map((p, idx) => (
             <div
-              key={p.airtableId}
-              className="min-w-[220px] max-w-[260px] flex-shrink-0 snap-start"
+              key={`${p.airtableId}-${idx}`}
+              className="min-w-[180px] max-w-[200px] sm:min-w-[190px] sm:max-w-[220px] md:min-w-[180px] md:max-w-[210px] flex-shrink-0"
             >
               <ProductCard product={p} />
             </div>
           ))}
         </div>
-      </div>
-
-      {/* ─── Desktop: Responsive grid ────────────────────────────────── */}
-      <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-6">
-        {products.map((p) => (
-          <ProductCard key={p.airtableId} product={p} />
-        ))}
       </div>
     </section>
   );

@@ -18,6 +18,7 @@ module.exports = {
       animation: {
         "pulse-wa": "pulse-wa 2s infinite",
         "modal-in": "modal-in 200ms ease-out",
+        "scroll": "scroll 40s linear infinite",
       },
       keyframes: {
         "pulse-wa": {
@@ -27,6 +28,10 @@ module.exports = {
         "modal-in": {
           "0%": { opacity: "0", transform: "scale(0.95)" },
           "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        "scroll": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
         },
       },
     },

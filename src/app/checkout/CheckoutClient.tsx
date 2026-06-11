@@ -553,18 +553,6 @@ export default function CheckoutClient() {
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Bandar <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={form.bandar}
-                              onChange={(e) => updateField("bandar", e.target.value)}
-                              required
-                              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
                               Poskod <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -572,6 +560,18 @@ export default function CheckoutClient() {
                               value={form.poskod}
                               onChange={(e) => handlePoskodChange(e.target.value)}
                               maxLength={5}
+                              required
+                              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Bandar <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={form.bandar}
+                              onChange={(e) => updateField("bandar", e.target.value)}
                               required
                               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                             />
