@@ -8,7 +8,7 @@ import StickyButtons from "@/components/layout/StickyButtons";
 export const metadata: Metadata = {
   title: "Tentang Kami | iTQAN Mobile",
   description:
-    "iTQAN Mobile menyediakan produk dan perkhidmatan digital, telekomunikasi dan pembayaran bil di Malaysia.",
+    "iTQAN Mobile dikendalikan oleh Seteguh Gading Enterprise (SSM: TR0341143-D). Menyediakan telefon bimbit, SIM kad, topup, aksesori & produk digital di Malaysia.",
 };
 
 export default function TentangKamiPage() {
@@ -30,18 +30,44 @@ export default function TentangKamiPage() {
           </div>
         </section>
 
-        {/* ─── Introduction ──────────────────────────────────────────────── */}
+        {/* ─── Company Info ──────────────────────────────────────────────── */}
         <section className="py-16">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6 text-center">
-              iTQAN Mobile
-            </h2>
-            <p className="text-gray-600 text-lg leading-relaxed text-center max-w-3xl mx-auto">
-              iTQAN Mobile menyediakan produk dan perkhidmatan digital,
-              telekomunikasi dan pembayaran bil di Malaysia.
-              Kami komited untuk memberikan pengalaman terbaik kepada pelanggan
-              dengan perkhidmatan yang pantas, mudah dan dipercayai.
-            </p>
+            <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm">
+              <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6 text-center">
+                Maklumat Syarikat
+              </h2>
+
+              <div className="space-y-4 max-w-xl mx-auto">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 border-b border-gray-100 pb-4">
+                  <span className="text-sm font-medium text-gray-500 sm:w-48">Nama Syarikat</span>
+                  <span className="text-primary font-semibold">Seteguh Gading Enterprise</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 border-b border-gray-100 pb-4">
+                  <span className="text-sm font-medium text-gray-500 sm:w-48">No. Pendaftaran SSM</span>
+                  <span className="text-primary font-semibold">TR0341143-D</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 border-b border-gray-100 pb-4">
+                  <span className="text-sm font-medium text-gray-500 sm:w-48">Jenama</span>
+                  <span className="text-primary font-semibold">iTQAN Mobile</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
+                  <span className="text-sm font-medium text-gray-500 sm:w-48">Jenis Perniagaan</span>
+                  <span className="text-primary font-semibold">
+                    Peruncitan Produk Telekomunikasi & Digital
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-gray-600 text-lg leading-relaxed text-center max-w-3xl mx-auto mt-10">
+                iTQAN Mobile dikendalikan oleh <strong>Seteguh Gading Enterprise</strong>, sebuah
+                perniagaan berdaftar di Malaysia yang menawarkan pelbagai produk dan
+                perkhidmatan telekomunikasi termasuk telefon bimbit, SIM kad, topup,
+                pelan data, aksesori telefon, serta produk digital dan telekomunikasi
+                yang lain. Kami komited untuk memberikan pengalaman terbaik kepada
+                pelanggan dengan perkhidmatan yang pantas, mudah dan dipercayai.
+              </p>
+            </div>
           </div>
         </section>
 

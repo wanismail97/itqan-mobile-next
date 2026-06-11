@@ -19,11 +19,11 @@ export default function HeroSection() {
 
       <div className="relative z-10 text-center max-w-4xl mx-auto py-20">
         <div className="fade-in">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-4 leading-tight">
-          Telefon &amp; Aksesori Terkini, Harga Mampu Milik!
+          <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white mb-4 leading-tight font-nunito tracking-normal">
+          Telefon & Aksesori Terkini, Harga Mampu Milik!
         </h1>
           <p className="text-white/80 max-w-2xl mx-auto mb-8 text-lg md:text-xl leading-relaxed">
-          iPhone, Samsung, SIM Kad, Modem WiFi &amp; Reload Prepaid — semua ada
+          iPhone, Samsung, SIM Kad, Modem WiFi & Reload Prepaid — semua ada
           di iTQAN Mobile. Waranti rasmi, penghantaran seluruh Malaysia.
         </p>
 
@@ -45,9 +45,6 @@ export default function HeroSection() {
         </div>
       </div>
       </div>
-
-      {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#f8fafc] to-transparent" />
     </section>
   );
 }

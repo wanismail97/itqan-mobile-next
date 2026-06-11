@@ -1,29 +1,35 @@
-// ─── How to Order — 4-step ordering guide ──────────────────────────────────
+// ─── How to Order — 5-step checkout flow guide ────────────────────────────
 
 const steps = [
   {
-    number: "1️⃣",
+    number: "01",
     title: "Pilih Produk",
     description:
-      "Browse katalog kami dan pilih produk kegemaran",
+      "Pilih telefon, SIM kad, modem WiFi, aksesori atau produk digital yang anda inginkan.",
   },
   {
-    number: "2️⃣",
-    title: "WhatsApp Order",
+    number: "02",
+    title: "Tambah Ke Bakul",
     description:
-      "Screenshot produk & hantar ke 012-3340972",
+      "Masukkan produk ke dalam bakul dan semak semula pesanan anda.",
   },
   {
-    number: "3️⃣",
-    title: "Buat Bayaran",
+    number: "03",
+    title: "Checkout & Bayar",
     description:
-      "Online transfer, DuitNow atau bank transfer. Senang!",
+      "Isi maklumat penghantaran dan buat pembayaran secara selamat.",
   },
   {
-    number: "4️⃣",
+    number: "04",
+    title: "Pesanan Diproses",
+    description:
+      "Pesanan disahkan dan akan diproses untuk penghantaran atau pengaktifan.",
+  },
+  {
+    number: "05",
     title: "Terima Produk",
     description:
-      "Kami hantar terus ke alamat anda. Tracking number diberikan.",
+      "Produk dihantar ke alamat anda atau diterima secara digital mengikut jenis pesanan.",
   },
 ];
 
@@ -35,14 +41,16 @@ export default function HowToOrder() {
           📋 Cara Order, Senang Je!
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
           {steps.map((step) => (
             <div key={step.number} className="text-center group">
-              <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 transition-all duration-300 ease-out group-hover:bg-accent group-hover:scale-110 group-hover:shadow-lg">
+              <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center text-lg font-bold text-accent mx-auto mb-4 transition-all duration-300 ease-out group-hover:bg-accent group-hover:text-primary group-hover:scale-110 group-hover:shadow-lg">
                 {step.number}
               </div>
-              <h3 className="font-semibold text-primary mb-2">{step.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
+              <h3 className="font-semibold text-primary mb-2 text-sm">
+                {step.title}
+              </h3>
+              <p className="text-xs text-gray-500 leading-relaxed">
                 {step.description}
               </p>
             </div>

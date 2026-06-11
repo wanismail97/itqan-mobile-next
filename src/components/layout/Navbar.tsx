@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useCart } from "@/lib/cart-context";
 import { navLinks } from "@/lib/config";
 import Link from "next/link";
@@ -22,11 +23,15 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link
-              href="/"
-              className="text-2xl font-bold text-accent hover:text-accent/90 transition-colors"
-            >
-              iTQAN Mobile
+            <Link href="/" aria-label="iTQAN Mobile Home">
+              <Image
+                src="/images/logo.png"
+                alt="iTQAN Mobile"
+                width={160}
+                height={48}
+                priority
+                className="h-10 w-auto md:h-12 object-contain"
+              />
             </Link>
           </div>
 

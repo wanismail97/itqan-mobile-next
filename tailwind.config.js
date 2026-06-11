@@ -13,6 +13,7 @@ module.exports = {
       },
       fontFamily: {
         inter: ["Inter", "sans-serif"],
+        nunito: ["var(--font-nunito)", "Inter", "sans-serif"],
       },
       animation: {
         "pulse-wa": "pulse-wa 2s infinite",

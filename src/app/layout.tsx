@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/lib/cart-context";
 
-// ─── Font ───────────────────────────────────────────────────────────────────
+// ─── Fonts ───────────────────────────────────────────────────────────────────
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const nunitoSans = Nunito_Sans({
+  subsets: ["latin"],
+  weight: ["700", "800", "900"],
+  variable: "--font-nunito",
   display: "swap",
 });
 
@@ -50,7 +57,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ms" className={`${inter.variable}`}>
+    <html lang="ms" className={`${inter.variable} ${nunitoSans.variable}`}>
       <body className="font-inter antialiased">
         <CartProvider>{children}</CartProvider>
       </body>
