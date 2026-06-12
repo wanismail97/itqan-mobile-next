@@ -11,9 +11,11 @@ import {
   getOrderByOrderId,
   updateOrderStatus,
   getOrderItemsByOrderId,
+  createOrderItems,
   deductStockForOrderItems,
   getProductBySku,
 } from "@/lib/airtable";
+import type { ItemPesananFields } from "@/types/airtable";
 import {
   sendTelegramMessage,
   buildOrderPaidMessage,
@@ -105,20 +107,64 @@ async function checkLowStock(
  */
 async function handleSuccessfulPayment(
   targetOrderId: string,
-  currentOrder: { Nama: string; Telefon: string; Jumlah: number } | null
+  currentOrder: {
+    Nama: string;
+    Telefon: string;
+    Jumlah: number;
+    "Order Items"?: string;
+  } | null
 ): Promise<void> {
-  // ─── Step 1: Deduct stock ──────────────────────────────────────────
-  console.log(`Deducting stock for order ${targetOrderId}...`);
+  // ─── Step 1: Check if Item Pesanan already exist (duplicate protection)
+  let items = await getOrderItemsByOrderId(targetOrderId);
 
-  const items = await getOrderItemsByOrderId(targetOrderId);
+  if (items.length === 0 && currentOrder?.["Order Items"]) {
+    // Create Item Pesanan from stored JSON (first callback only)
+    try {
+      const parsed = JSON.parse(currentOrder["Order Items"]) as {
+        sku: string;
+        name: string;
+        qty: number;
+        price: number;
+        variasi?: string;
+      }[];
 
+      const receiptNo = `RCP-${targetOrderId}`;
+
+      const itemRecords: ItemPesananFields[] = parsed.map((item) => ({
+        "Order ID": targetOrderId,
+        "Nama Item": item.name,
+        SKU: item.sku,
+        Kuantiti: item.qty,
+        Harga: item.price,
+        ...(item.variasi ? { Variasi: item.variasi } : {}),
+        ReceiptNo: receiptNo,
+        Kurier: "",
+        "Tracking No": "",
+        Dihantar: false,
+      }));
+
+      const created = await createOrderItems(itemRecords);
+      if (created) {
+        console.log(`Item Pesanan created for ${targetOrderId} (${parsed.length} items)`);
+        // Re-fetch the items for deduction
+        items = await getOrderItemsByOrderId(targetOrderId);
+      } else {
+        console.error(`Failed to create Item Pesanan for ${targetOrderId}`);
+      }
+    } catch (err) {
+      console.error(`Failed to parse Order Items JSON for ${targetOrderId}:`, err);
+    }
+  }
+
+  // ─── Step 2: Deduct stock ──────────────────────────────────────────
   if (items.length > 0) {
+    console.log(`Deducting stock for order ${targetOrderId}...`);
     const deductionResult = await deductStockForOrderItems(items);
 
     if (deductionResult) {
       console.log(`Stock deducted successfully for order ${targetOrderId}`);
 
-      // ─── Step 2: Low stock alerts ─────────────────────────────────
+      // ─── Step 3: Low stock alerts ─────────────────────────────────
       await checkLowStock(items);
     } else {
       console.error(`Some stock deductions failed for order ${targetOrderId}`);
@@ -129,7 +175,7 @@ async function handleSuccessfulPayment(
     );
   }
 
-  // ─── Step 3: Telegram order notification ───────────────────────────
+  // ─── Step 4: Telegram order notification ───────────────────────────
   if (currentOrder) {
     const itemsList = items
       .map((i) => {

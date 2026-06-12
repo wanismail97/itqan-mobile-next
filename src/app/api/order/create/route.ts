@@ -11,7 +11,7 @@
 // This ensures Airtable API keys and Order ID generation NEVER execute in the browser.
 
 import { NextRequest, NextResponse } from "next/server";
-import { generateOrderId, createOrder, createOrderItems, validateStockForItems } from "@/lib/airtable";
+import { generateOrderId, createOrder, updateOrderStatus, validateStockForItems } from "@/lib/airtable";
 import { createBill } from "@/lib/toyyibpay";
 import type { PesananFields, ItemPesananFields } from "@/types/airtable";
 
@@ -116,6 +116,11 @@ export async function POST(request: NextRequest) {
       Status: "Menunggu Bayaran",
       "Jenis Pesanan": orderType || "",
       Tarikh: tarikhMalaysia,
+      // ─── Address fields (optional — for physical products) ───────────
+      Alamat: customer.alamat?.trim() || undefined,
+      Poskod: customer.poskod?.trim() || undefined,
+      Bandar: customer.bandar?.trim() || undefined,
+      Negeri: customer.negeri?.trim() || undefined,
     };
 
     // 🐛 DEBUG: Log exact payload before sending to Airtable
@@ -150,21 +155,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ─── 3. Create Item Pesanan records ─────────────────────────────────
-    const itemRecords: ItemPesananFields[] = items.map((item) => ({
-      "Order ID": oid,
-      "Nama Item": item.label,
-      SKU: item.detail,
-      Kuantiti: item.quantity,
-      Harga: item.amount,
-      ...(item.variasi ? { "Variasi": item.variasi } : {}),
-    }));
-
-    const itemsResult = await createOrderItems(itemRecords);
-    if (!itemsResult) {
-      console.warn("/api/order/create: Gagal menyimpan item pesanan untuk", oid);
-      // Continue anyway — the order header is saved
-    }
+    // ─── 3. Store Order Items JSON in Pesanan (deferred creation) ─────
+    // Item Pesanan will be created after successful payment callback.
+    const orderItemsPayload = JSON.stringify(
+      items.map((item) => ({
+        sku: item.detail,
+        name: item.label,
+        qty: item.quantity,
+        price: item.amount,
+        ...(item.variasi ? { variasi: item.variasi } : {}),
+      }))
+    );
+    // Update the Pesanan record with Order Items JSON
+    await updateOrderStatus(oid, { "Order Items": orderItemsPayload });
 
     // ─── 4. Create ToyyibPay bill ───────────────────────────────────────
     const billResult = await createBill({

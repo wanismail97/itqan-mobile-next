@@ -91,6 +91,16 @@ export interface PesananFields {
   Tarikh: string;
   /** ToyyibPay Bill Code for payment reference */
   "Rujukan Bayaran"?: string;
+  /** Customer shipping address (optional — for physical products) */
+  Alamat?: string;
+  /** Customer shipping postcode (optional) */
+  Poskod?: string;
+  /** Customer shipping city (optional) */
+  Bandar?: string;
+  /** Customer shipping state (optional) */
+  Negeri?: string;
+  /** JSON payload of order items (for deferred item creation after payment) */
+  "Order Items"?: string;
 }
 
 export interface Pesanan extends PesananFields {
@@ -112,6 +122,14 @@ export interface ItemPesananFields {
   Harga: number;
   /** Product variation selected by customer (e.g. "No Baru", "Port In") — optional */
   "Variasi"?: string;
+  /** Receipt number (optional — auto-generated if empty) */
+  ReceiptNo?: string;
+  /** Courier name for fulfilment */
+  Kurier?: string;
+  /** Tracking number for fulfilment */
+  "Tracking No"?: string;
+  /** Whether order has been shipped */
+  Dihantar?: boolean;
 }
 
 export interface ItemPesanan extends ItemPesananFields {

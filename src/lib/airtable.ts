@@ -347,8 +347,9 @@ export async function getOrderByOrderId(orderId: string): Promise<PesananFields 
 export async function updateOrderStatus(
   orderId: string,
   updates: {
-    Status: string;
+    Status?: string;
     "Rujukan Bayaran"?: string;
+    "Order Items"?: string;
   }
 ): Promise<boolean> {
   try {
