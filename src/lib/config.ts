@@ -9,6 +9,8 @@ export const airtableConfig = {
     pesanan: process.env.AIRTABLE_PESANAN_TABLE || "Pesanan",
     itemPesanan: process.env.AIRTABLE_ITEM_PESANAN_TABLE || "Item Pesanan",
     reviews: process.env.AIRTABLE_REVIEWS_TABLE || "Reviews",
+    kodPromo: process.env.AIRTABLE_KOD_PROMO_TABLE || "Kod Promo",
+    shippingSettings: process.env.AIRTABLE_SHIPPING_TABLE || "Shipping Settings",
   },
 } as const;
 

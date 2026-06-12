@@ -12,6 +12,8 @@ import type {
   ItemPesananFields,
   ReviewFields,
   Review,
+  KodPromoFields,
+  ShippingSettingsFields,
 } from "@/types/airtable";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -533,6 +535,94 @@ export async function deductStockForOrderItems(items: ItemPesananFields[]): Prom
   }
 
   return allSucceeded;
+}
+
+// ─── Promo Code ────────────────────────────────────────────────────────────
+
+/**
+ * Fetch a single promo code by its Code field.
+ * Only returns active, non-expired codes with remaining usage.
+ * Returns null if not found, inactive, expired, or usage limit reached.
+ */
+export async function getPromoCode(code: string): Promise<KodPromoFields | null> {
+  try {
+    const data = await fetchTable<KodPromoFields>(tables.kodPromo, {
+      filterByFormula: `AND({Code} = "${code.replace(/"/g, '\\"')}", {Active} = TRUE())`,
+      maxRecords: 1,
+    });
+
+    if (data.records.length === 0) return null;
+
+    const promo = data.records[0].fields;
+
+    // Check expiry
+    if (promo["Expiry Date"]) {
+      const now = new Date().toISOString().split("T")[0];
+      if (promo["Expiry Date"] < now) return null;
+    }
+
+    // Check usage limit
+    if (promo["Usage Limit"] != null && promo["Usage Count"] != null) {
+      if (promo["Usage Count"] >= promo["Usage Limit"]) return null;
+    }
+
+    return promo;
+  } catch (err) {
+    console.error("Airtable getPromoCode error:", err);
+    return null;
+  }
+}
+
+/**
+ * Increment the usage count for a promo code.
+ * Called after successful payment callback.
+ */
+export async function incrementPromoUsage(code: string): Promise<boolean> {
+  try {
+    const data = await fetchTable<KodPromoFields>(tables.kodPromo, {
+      filterByFormula: `{Code} = "${code.replace(/"/g, '\\"')}"`,
+      maxRecords: 1,
+    });
+
+    if (data.records.length === 0) return false;
+
+    const record = data.records[0];
+    const currentCount = record.fields["Usage Count"] || 0;
+
+    const updateUrl = `${BASE_URL}/${encodeURIComponent(tables.kodPromo)}`;
+    const res = await fetch(updateUrl, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({
+        records: [{ id: record.id, fields: { "Usage Count": currentCount + 1 } }],
+      }),
+    });
+
+    if (!res.ok) {
+      console.error("Airtable incrementPromoUsage error:", await res.text());
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error("Airtable incrementPromoUsage exception:", err);
+    return false;
+  }
+}
+
+// ─── Shipping ──────────────────────────────────────────────────────────────
+
+/**
+ * Fetch all shipping rates from Shipping Settings table.
+ */
+export async function getShippingRates(): Promise<ShippingSettingsFields[]> {
+  try {
+    const data = await fetchTable<ShippingSettingsFields>(tables.shippingSettings);
+    return data.records.map((r) => r.fields);
+  } catch (err) {
+    console.error("Airtable getShippingRates error:", err);
+    return [];
+  }
 }
 
 // ─── Reviews ──────────────────────────────────────────────────────────────────

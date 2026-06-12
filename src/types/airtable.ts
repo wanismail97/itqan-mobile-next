@@ -70,6 +70,54 @@ export interface AirtableResponse<T> {
   offset?: string;
 }
 
+// ─── Kod Promo Table ─────────────────────────────────────────────────────────
+
+export interface KodPromoFields {
+  /** Promo code (e.g. "WELCOME5") */
+  Code: string;
+  /** Discount type: "Flat" or "Percent" */
+  "Discount Type": string;
+  /** Discount value (RM for Flat, % for Percent) */
+  "Discount Value": number;
+  /** Whether promo is active */
+  Active: boolean;
+  /** Expiry date (ISO string) */
+  "Expiry Date"?: string;
+  /** Minimum order amount */
+  "Min Order"?: number;
+  /** Maximum usage limit */
+  "Usage Limit"?: number;
+  /** Current usage count */
+  "Usage Count"?: number;
+  /** Related orders (text) */
+  "Related Orders"?: string;
+  /** Admin notes */
+  Notes?: string;
+}
+
+export interface KodPromo extends KodPromoFields {
+  airtableId: string;
+}
+
+// ─── Shipping Settings Table ────────────────────────────────────────────────
+
+export interface ShippingSettingsFields {
+  /** Shipping tier name */
+  Name: string;
+  /** Shipping rate in RM */
+  Rate: number;
+  /** Courier name */
+  "Kurier Shipping"?: string;
+  /** Weight type: Ringan / Pertengahan / Berat */
+  "Jenis Berat"?: string;
+  /** Estimated delivery description */
+  "Estimated Delivery"?: string;
+}
+
+export interface ShippingSettings extends ShippingSettingsFields {
+  airtableId: string;
+}
+
 // ─── Pesanan (Order) Table ───────────────────────────────────────────────────
 
 export interface PesananFields {
@@ -99,6 +147,12 @@ export interface PesananFields {
   Bandar?: string;
   /** Customer shipping state (optional) */
   Negeri?: string;
+  /** Applied promo code */
+  "Promo Code"?: string;
+  /** Discount amount in RM */
+  "Discount Amount"?: number;
+  /** Shipping fee in RM */
+  "Shipping Fee"?: number;
   /** JSON payload of order items (for deferred item creation after payment) */
   "Order Items"?: string;
 }
@@ -162,6 +216,3 @@ export interface ReviewFields {
 export interface Review extends ReviewFields {
   airtableId: string;
 }
-
-
-

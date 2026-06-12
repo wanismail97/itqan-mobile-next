@@ -6,8 +6,8 @@
  */
 export function formatRM(amount: number): string {
   return `RM${amount.toLocaleString("ms-MY", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   })}`;
 }
 

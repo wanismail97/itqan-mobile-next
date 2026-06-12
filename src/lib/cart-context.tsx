@@ -1,6 +1,7 @@
 // ─── Cart Context & Provider ────────────────────────────────────────────────
 // Manages cart state in localStorage with React Context.
 // Persists across page navigations and browser sessions.
+// Extended with promo code and shipping support.
 "use client";
 
 import {
@@ -27,13 +28,22 @@ interface CartContextValue {
   getTotalPrice: () => number;
   /** True if cart contains at least one product (not just reload/service) */
   hasProducts: boolean;
+  // ─── Promo & Shipping ────────────────────────────────────────────────
+  promoCode: string;
+  discountAmount: number;
+  shippingFee: number;
+  applyPromo: (code: string, type: "Flat" | "Percent", value: number, subtotal?: number) => void;
+  removePromo: () => void;
+  setShippingFee: (fee: number) => void;
+  getGrandTotal: () => number;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-// ─── Storage Key ────────────────────────────────────────────────────────────
+// ─── Storage Keys ───────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "itqan_cart";
+const CART_STORAGE_KEY = "itqan_cart";
+const PROMO_STORAGE_KEY = "itqan_promo";
 
 /**
  * Extract a stable unique key from any cart item for deduplication.
@@ -58,28 +68,60 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
+  // ─── Promo & Shipping state ──────────────────────────────────────────────
+  const [promoCode, setPromoCode] = useState("");
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [shippingFee, setShippingFee] = useState(0);
+
   // Load from localStorage on mount
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(CART_STORAGE_KEY);
       if (stored) {
         const parsed: CartItem[] = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setItems(parsed);
-        }
+        if (Array.isArray(parsed)) setItems(parsed);
       }
     } catch {
       // Ignore corrupt data — start with empty cart
     }
+
+    // ─── Load saved promo code + discount ──────────────────────────────
+    try {
+      const storedPromo = localStorage.getItem(PROMO_STORAGE_KEY);
+      if (storedPromo) {
+        const parsed = JSON.parse(storedPromo);
+        if (parsed.code && typeof parsed.code === "string") {
+          setPromoCode(parsed.code);
+          if (typeof parsed.discountAmount === "number") {
+            setDiscountAmount(parsed.discountAmount);
+          }
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
     setHydrated(true);
   }, []);
 
-  // Persist to localStorage whenever items change (only after hydration)
+  // Persist cart to localStorage whenever items change (only after hydration)
   useEffect(() => {
     if (hydrated) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
     }
   }, [items, hydrated]);
+
+  // Persist promo code + discount amount
+  useEffect(() => {
+    if (hydrated && promoCode) {
+      localStorage.setItem(
+        PROMO_STORAGE_KEY,
+        JSON.stringify({ code: promoCode, discountAmount })
+      );
+    } else if (hydrated && !promoCode) {
+      localStorage.removeItem(PROMO_STORAGE_KEY);
+    }
+  }, [promoCode, discountAmount, hydrated]);
 
   // ─── Derived values ────────────────────────────────────────────────────
 
@@ -94,7 +136,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const hasProducts = items.some((i) => i.type === "product");
 
-  // ─── Actions ───────────────────────────────────────────────────────────
+  // ─── Cart Actions ───────────────────────────────────────────────────────
 
   const addItem = useCallback((newItem: CartItem) => {
     setItems((prev) => {
@@ -144,6 +186,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(() => {
     setItems([]);
+    setPromoCode("");
+    setDiscountAmount(0);
+    setShippingFee(0);
   }, []);
 
   const getTotalItems = useCallback(() => {
@@ -151,13 +196,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items]);
 
   const getTotalPrice = useCallback(() => {
-    return items.reduce((sum, i) => {
-      if (i.type === "product") return sum + i.price * i.quantity;
-      if (i.type === "reload") return sum + i.amount;
-      if (i.type === "service") return sum + (i.amount || 0);
-      return sum;
-    }, 0);
-  }, [items]);
+    return total;
+  }, [total]);
+
+  // ─── Promo & Shipping Actions ────────────────────────────────────────────
+
+  const applyPromo = useCallback((code: string, type: "Flat" | "Percent", value: number, subtotal?: number) => {
+    setPromoCode(code);
+    const base = typeof subtotal === "number" ? subtotal : total;
+    const normalized = type.trim().toLowerCase();
+    if (normalized === "flat") {
+      setDiscountAmount(value);
+    } else if (normalized === "percent") {
+      // Use parseFloat to preserve decimal precision (e.g., RM0.30 for 10% of RM3)
+      setDiscountAmount(parseFloat(((base * value) / 100).toFixed(2)));
+    }
+  }, [total]);
+
+  const removePromo = useCallback(() => {
+    setPromoCode("");
+    setDiscountAmount(0);
+  }, []);
+
+  const getGrandTotal = useCallback(() => {
+    const subtotal = getTotalPrice();
+    return Math.max(0, subtotal + shippingFee - discountAmount);
+  }, [getTotalPrice, shippingFee, discountAmount]);
 
   return (
     <CartContext.Provider
@@ -172,6 +236,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
         getTotalItems,
         getTotalPrice,
         hasProducts,
+        promoCode,
+        discountAmount,
+        shippingFee,
+        applyPromo,
+        removePromo,
+        setShippingFee,
+        getGrandTotal,
       }}
     >
       {children}

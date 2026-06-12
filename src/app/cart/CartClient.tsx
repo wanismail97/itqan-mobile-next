@@ -1,6 +1,7 @@
 // ─── Cart Client — Client-side cart management ────────────────────────────
 "use client";
 
+import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import StickyButtons from "@/components/layout/StickyButtons";
@@ -17,8 +18,54 @@ function itemKey(item: { SKU?: string; type: string; id?: string; provider?: str
 }
 
 export default function CartClient() {
-  const { items, itemCount, total, removeItem, clearCart } =
-    useCart();
+  const {
+    items,
+    itemCount,
+    total,
+    removeItem,
+    clearCart,
+    promoCode,
+    discountAmount,
+    applyPromo,
+    removePromo,
+  } = useCart();
+
+  const [promoInput, setPromoInput] = useState("");
+  const [promoError, setPromoError] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+
+  const handleApplyPromo = async () => {
+    const code = promoInput.trim().toUpperCase();
+    if (!code) return;
+
+    setPromoLoading(true);
+    setPromoError("");
+
+    try {
+      const res = await fetch("/api/promo/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal: total }),
+      });
+
+      const data = await res.json();
+
+      console.log("DEBUG CART PROMO API RESPONSE:", JSON.stringify(data));
+
+      if (data.success) {
+        console.log("DEBUG CART discountType:", data.discountType, typeof data.discountType);
+        console.log("DEBUG CART discountValue:", data.discountValue, typeof data.discountValue);
+        applyPromo(code, data.discountType, data.discountValue);
+        setPromoInput("");
+      } else {
+        setPromoError(data.error || "Kod promo tidak sah");
+      }
+    } catch {
+      setPromoError("Ralat menyemak kod promo");
+    } finally {
+      setPromoLoading(false);
+    }
+  };
 
   // ─── Separate items by type for display ──────────────────────────────
   const productItems = items.filter((i) => i.type === "product");
@@ -228,14 +275,75 @@ export default function CartClient() {
               </div>
               )}
 
+              {/* ─── Promo Code ──────────────────────────────────────────── */}
+              {promoCode ? (
+                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-green-700">
+                        Kod Promo: {promoCode}
+                      </p>
+                      <p className="text-xs text-green-600">
+                        Diskaun -{formatRM(discountAmount)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={removePromo}
+                      className="text-xs text-red-500 hover:text-red-700 font-medium"
+                    >
+                      Buang
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-6">
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Kod Promo
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promoInput}
+                      onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                      placeholder="Masukkan kod"
+                      className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+                    />
+                    <button
+                      onClick={handleApplyPromo}
+                      disabled={promoLoading || !promoInput.trim()}
+                      className="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition min-w-[60px]"
+                    >
+                      {promoLoading ? "..." : "Guna"}
+                    </button>
+                  </div>
+                  {promoError && (
+                    <p className="text-xs text-red-500 mt-1.5">{promoError}</p>
+                  )}
+                </div>
+              )}
+
               {/* ─── Summary ─────────────────────────────────────────────── */}
               <div className="bg-gray-50 rounded-xl p-6">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-gray-500 text-sm">Subtotal</span>
+                  <span className="font-semibold text-primary">
+                    {formatRM(total)}
+                  </span>
+                </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-green-600 text-sm">Diskaun</span>
+                    <span className="font-semibold text-green-600">
+                      -{formatRM(discountAmount)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center mb-4 pt-2 border-t border-gray-200">
                   <span className="text-gray-600">
-                    Jumlah Item ({itemCount})
+                    Jumlah ({itemCount} item)
                   </span>
                   <span className="text-xl font-bold text-primary">
-                    {formatRM(total)}
+                    {formatRM(total - discountAmount)}
                   </span>
                 </div>
 

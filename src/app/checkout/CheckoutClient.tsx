@@ -7,11 +7,112 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import StickyButtons from "@/components/layout/StickyButtons";
 import { useCart } from "@/lib/cart-context";
+
+function usePromoValidation(cartTotal: number) {
+  const { promoCode, discountAmount, applyPromo, removePromo } = useCart();
+  const [promoInput, setPromoInput] = useState("");
+  const [promoError, setPromoError] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+
+  const handleApplyPromo = async () => {
+    const code = promoInput.trim().toUpperCase();
+    if (!code) return;
+
+    setPromoLoading(true);
+    setPromoError("");
+
+    try {
+      const res = await fetch("/api/promo/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal: cartTotal }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        applyPromo(code, data.discountType, data.discountValue, cartTotal);
+        setPromoInput("");
+      } else {
+        setPromoError(data.error || "Kod promo tidak sah");
+      }
+    } catch {
+      setPromoError("Ralat menyemak kod promo");
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  return { promoCode, discountAmount, promoInput, setPromoInput, promoError, promoLoading, handleApplyPromo, removePromo };
+}
+
+function useShippingCalculation(hasProducts: boolean) {
+  const { shippingFee, setShippingFee } = useCart();
+
+  useEffect(() => {
+    async function fetchShipping() {
+      if (!hasProducts) {
+        setShippingFee(0);
+        return;
+      }
+      try {
+        const res = await fetch("/api/shipping/calculate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ hasProducts: true }),
+        });
+        const data = await res.json();
+        if (data.success) setShippingFee(data.shippingFee);
+      } catch {
+        // Keep current shippingFee
+      }
+    }
+    fetchShipping();
+  }, [hasProducts, setShippingFee]);
+
+  return shippingFee;
+}
 import { formatRM } from "@/lib/utils";
 import { lookupPostcode } from "@/data/malaysia-postcodes";
 import Link from "next/link";
 import type { Produk } from "@/types/airtable";
 import type { CartItem } from "@/types/cart";
+
+// ─── Local storage helpers ────────────────────────────────────────────────
+
+const PROFILE_KEY = "itqan_checkout_profile";
+
+interface SavedProfile {
+  version: number;
+  nama: string;
+  telefon: string;
+  email: string;
+}
+
+function loadProfile(): SavedProfile | null {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (data && typeof data === "object" && data.version === 1) {
+      return data as SavedProfile;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function saveProfile(nama: string, telefon: string, email: string): void {
+  try {
+    localStorage.setItem(
+      PROFILE_KEY,
+      JSON.stringify({ version: 1, nama, telefon, email })
+    );
+  } catch {
+    // localStorage unavailable — fail silently
+  }
+}
 
 // ─── Type guards ────────────────────────────────────────────────────────────
 function isProductItem(item: CartItem): item is CartItem & { type: "product"; SKU: string; Nama: string; "Gambar URL"?: string; Jenama: string; price: number; originalPrice: number; quantity: number; variasi?: string } {
@@ -60,14 +161,23 @@ export default function CheckoutClient() {
   const searchParams = useSearchParams();
   const { items, clearCart } = useCart();
 
-  const [form, setForm] = useState<FormData>({
-    nama: "",
-    telepon: "",
-    email: "",
-    alamat: "",
-    bandar: "",
-    poskod: "",
-    negeri: "",
+  const [hasPrefillData, setHasPrefillData] = useState(false);
+
+  const [form, setForm] = useState<FormData>(() => {
+    const profile = loadProfile();
+    if (profile) {
+      setHasPrefillData(true);
+      return {
+        nama: profile.nama || "",
+        telepon: profile.telefon || "",
+        email: profile.email || "",
+        alamat: "",
+        bandar: "",
+        poskod: "",
+        negeri: "",
+      };
+    }
+    return { nama: "", telepon: "", email: "", alamat: "", bandar: "", poskod: "", negeri: "" };
   });
 
   const [submitted, setSubmitted] = useState(false);
@@ -281,6 +391,11 @@ export default function CheckoutClient() {
     return "Campuran";
   }, [checkoutLines]);
 
+  // ─── Promo & Shipping calculations ─────────────────────────────────────
+  const promo = usePromoValidation(checkoutTotal);
+  const shippingFee = useShippingCalculation(hasProducts);
+  const grandTotal = Math.max(0, checkoutTotal + shippingFee - promo.discountAmount);
+
   // ─── Redirect only when truly empty and not loading ────────────────────
   useEffect(() => {
     if (!submitted && !directLoading && checkoutLines.length === 0 && !skuParam) {
@@ -324,6 +439,9 @@ export default function CheckoutClient() {
       return;
     }
 
+    // ─── Save customer profile to localStorage ─────────────────────────
+    saveProfile(form.nama.trim(), form.telepon.trim(), form.email.trim());
+
     setSubmitting(true);
     setErrorMsg("");
 
@@ -361,7 +479,7 @@ export default function CheckoutClient() {
             amount: line.amount,
             ...(line.variasi ? { variasi: line.variasi } : {}),
           })),
-          total: checkoutTotal,
+          total: grandTotal,
           orderType,
           description,
         }),
@@ -488,6 +606,11 @@ export default function CheckoutClient() {
                   <h2 className="text-lg font-semibold text-primary mb-4">
                     Maklumat Pelanggan
                   </h2>
+                  {hasPrefillData && (
+                    <p className="text-xs text-gray-400 -mt-3 mb-4">
+                      Maklumat anda diisi secara automatik.
+                    </p>
+                  )}
 
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -610,7 +733,7 @@ export default function CheckoutClient() {
                           Memproses...
                         </>
                       ) : (
-                        `Bayar RM${checkoutTotal.toLocaleString("ms-MY")}`
+                        `Bayar RM${grandTotal.toLocaleString("ms-MY")}`
                       )}
                     </button>
 
@@ -663,13 +786,61 @@ export default function CheckoutClient() {
                     })}
                   </div>
 
-                  <div className="border-t border-gray-200 pt-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 text-sm">
-                        Jumlah ({checkoutCount} item)
-                      </span>
-                      <span className="text-xl font-bold text-primary">
+                  {/* ─── Promo Code ──────────────────────────────────────── */}
+                  {promo.promoCode ? (
+                    <div className="border-t border-gray-200 pt-3 mb-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-500">Kod Promo</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-green-700">{promo.promoCode}</span>
+                          <button onClick={promo.removePromo} className="text-xs text-red-500 hover:text-red-700">Buang</button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border-t border-gray-200 pt-3 mb-3">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Kod Promo</p>
+                      <div className="flex gap-2">
+                        <input type="text" value={promo.promoInput} onChange={(e) => promo.setPromoInput(e.target.value.toUpperCase())} placeholder="Masukkan kod" className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-accent/30" />
+                        <button onClick={promo.handleApplyPromo} disabled={promo.promoLoading || !promo.promoInput.trim()} className="px-3 py-2 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 min-w-[50px]">{promo.promoLoading ? "..." : "Guna"}</button>
+                      </div>
+                      {promo.promoError && <p className="text-xs text-red-500 mt-1">{promo.promoError}</p>}
+                    </div>
+                  )}
+
+                  {/* ─── Pricing Breakdown ──────────────────────────────── */}
+                  <div className="border-t border-gray-200 pt-3 space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-500">Subtotal</span>
+                      <span className="font-medium text-primary">
                         {formatRM(checkoutTotal)}
+                      </span>
+                    </div>
+
+                    {shippingFee > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-500">Caj Penghantaran</span>
+                        <span className="font-medium text-primary">
+                          {formatRM(shippingFee)}
+                        </span>
+                      </div>
+                    )}
+
+                    {promo.discountAmount > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-green-600">Diskaun Kod Promo</span>
+                        <span className="font-medium text-green-600">
+                          -{formatRM(promo.discountAmount)}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                      <span className="text-gray-600 text-sm">
+                        Jumlah Bayaran
+                      </span>
+                      <span className="text-xl font-bold text-accent">
+                        {formatRM(grandTotal)}
                       </span>
                     </div>
                   </div>
