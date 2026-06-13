@@ -507,6 +507,19 @@ export default function CheckoutClient() {
 
       setOrderId(data.orderId);
 
+      // ─── Save pending cart for recovery if payment cancelled ─────────
+      try {
+        localStorage.setItem("itqan_pending_cart", JSON.stringify({
+          items,
+          promoCode: promo.promoCode,
+          discountAmount: promo.discountAmount,
+          shippingFee,
+          createdAt: Date.now(),
+        }));
+      } catch {
+        // localStorage unavailable — fail silently
+      }
+
       // ─── Clear cart & redirect to ToyyibPay ──────────────────────────
       clearCart();
       setSubmitted(true);

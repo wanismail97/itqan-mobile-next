@@ -4,7 +4,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -18,6 +18,8 @@ export default function PaymentSuccessClient() {
 
   const statusId = searchParams.get("status_id");
 
+  const router = useRouter();
+
   const [status, setStatus] = useState<"verifying" | "success" | "cancelled" | "error">("verifying");
   const [message, setMessage] = useState("");
 
@@ -29,8 +31,43 @@ export default function PaymentSuccessClient() {
     }
     // status_id=1 = paid, status_id=3 = cancelled/failed
     // Order fulfillment is handled solely by the server-to-server POST /api/payment/callback webhook.
-    setStatus(statusId === "1" ? "success" : "cancelled");
+    const isSuccess = statusId === "1";
+    setStatus(isSuccess ? "success" : "cancelled");
+
+    // Clean up pending cart after successful payment — avoid stale recovery
+    if (isSuccess) {
+      try {
+        localStorage.removeItem("itqan_pending_cart");
+      } catch {
+        // localStorage unavailable — fail silently
+      }
+    }
   }, [orderId, statusId]);
+
+  const handleBayarSemula = () => {
+    try {
+      const raw = localStorage.getItem("itqan_pending_cart");
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (!data || !Array.isArray(data.items)) return;
+
+      // Restore cart items
+      localStorage.setItem("itqan_cart", JSON.stringify(data.items));
+
+      // Restore promo if available
+      if (data.promoCode && typeof data.promoCode === "string") {
+        localStorage.setItem(
+          "itqan_promo",
+          JSON.stringify({ code: data.promoCode, discountAmount: data.discountAmount ?? 0 })
+        );
+      }
+
+      // Navigate to cart with full page reload to force CartProvider remount
+      window.location.href = "/cart";
+    } catch {
+      // Corrupt data — fail silently, do nothing
+    }
+  };
 
   const handleWhatsApp = () => {
     const id = orderId || "";
@@ -77,10 +114,10 @@ export default function PaymentSuccessClient() {
               )}
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
-                  onClick={handleWhatsApp}
-                  className="inline-flex items-center justify-center gap-2 bg-green-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-green-600 transition"
+                  onClick={handleBayarSemula}
+                  className="inline-flex items-center justify-center bg-primary text-white px-8 py-3 rounded-full font-semibold hover:bg-primary/90 transition"
                 >
-                  Hubungi WhatsApp
+                  Bayar Semula
                 </button>
                 <Link
                   href="/"
