@@ -55,4 +55,5 @@ export const navLinks = [
   { label: "Servis", href: "/servis" },
   { label: "Tentang Kami", href: "/tentang-kami" },
   { label: "Hubungi", href: "/hubungi" },
+  { label: "Jejak Pos", href: "/jejak-pos" },
 ] as const;
