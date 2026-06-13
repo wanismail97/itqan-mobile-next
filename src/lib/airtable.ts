@@ -14,6 +14,7 @@ import type {
   Review,
   KodPromoFields,
   ShippingSettingsFields,
+  PenghantaranFields,
 } from "@/types/airtable";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -320,6 +321,67 @@ export async function createOrderItems(
   } catch (err) {
     console.error("Airtable createOrderItems exception:", err);
     return false;
+  }
+}
+
+// ─── EasyParcel Shipment Tracking ─────────────────────────────────────────
+
+/**
+ * Fetch a single shipment record from Penghantaran table by Order ID.
+ * Returns null if not found.
+ */
+export async function getShipmentByOrderId(
+  orderId: string
+): Promise<PenghantaranFields | null> {
+  try {
+    const data = await fetchTable<PenghantaranFields>(
+      airtableConfig.tables.penghantaran,
+      {
+        filterByFormula: `{Order ID} = "${orderId.replace(/"/g, '\\"')}"`,
+        maxRecords: 1,
+      }
+    );
+    if (data.records.length === 0) return null;
+    return data.records[0].fields;
+  } catch (err) {
+    console.error("Airtable getShipmentByOrderId error:", err);
+    return null;
+  }
+}
+
+/**
+ * Retrieve the EasyParcel access_token from the EasyParcel Config table.
+ * Returns null if the access_token record is not found or the value is empty.
+ */
+export async function getEasyParcelAccessToken(): Promise<string | null> {
+  try {
+    const tableName = airtableConfig.tables.easyparcelConfig;
+    const url = `${BASE_URL}/${encodeURIComponent(tableName)}?filterByFormula=${encodeURIComponent('{Key} = "access_token"')}`;
+    const res = await fetch(url, { headers, cache: "no-store" });
+
+    if (!res.ok) {
+      console.error(
+        `getEasyParcelAccessToken: Airtable error: ${res.status}`
+      );
+      return null;
+    }
+
+    const data = await res.json();
+    if (!data.records || data.records.length === 0) {
+      console.error("getEasyParcelAccessToken: access_token record not found");
+      return null;
+    }
+
+    const token = data.records[0].fields?.Value;
+    if (!token) {
+      console.error("getEasyParcelAccessToken: access_token value is empty");
+      return null;
+    }
+
+    return String(token);
+  } catch (err) {
+    console.error("getEasyParcelAccessToken exception:", err);
+    return null;
   }
 }
 

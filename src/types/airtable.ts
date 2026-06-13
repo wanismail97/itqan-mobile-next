@@ -218,3 +218,17 @@ export interface ReviewFields {
 export interface Review extends ReviewFields {
   airtableId: string;
 }
+
+// ─── Penghantaran (Shipment) Table ─────────────────────────────────────────
+
+export interface PenghantaranFields {
+  AWB: string;
+  "Order ID": string;
+  Kurier: string;
+  Status: string;
+  "Tarikh Dihantar": string;
+}
+
+export interface Penghantaran extends PenghantaranFields {
+  airtableId: string;
+}
