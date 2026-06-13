@@ -15,10 +15,8 @@ import { waCheckoutMessage } from "@/lib/utils";
 export default function PaymentSuccessClient() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
-  const billCode = searchParams.get("billcode") || "";
 
   const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
-  const [amount, setAmount] = useState<number>(0);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -27,30 +25,10 @@ export default function PaymentSuccessClient() {
       setMessage("Tiada ID pesanan.");
       return;
     }
-
-    // Verify payment by calling our callback-equivalent check
-    // We call getBillStatus via a simple API endpoint
-    async function verify() {
-      try {
-        // If ToyyibPay redirected us, the billcode is in the URL params
-        // We can use it to verify directly
-        if (billCode && orderId) {
-          const url = `/api/payment/callback?billcode=${encodeURIComponent(billCode)}&order_id=${encodeURIComponent(orderId)}&status=1`;
-          await fetch(url);
-          // Even if callback fails, we show success to the user
-          // The callback/webhook will process in the background
-        }
-
-        setStatus("success");
-        setAmount(0); // Will be shown from order lookup if needed
-      } catch {
-        // Still show success — callback will process async
-        setStatus("success");
-      }
-    }
-
-    verify();
-  }, [orderId, billCode]);
+    // Success page only shows UI — order fulfillment is handled by the
+    // server-to-server POST /api/payment/callback webhook from ToyyibPay.
+    setStatus("success");
+  }, [orderId]);
 
   const handleWhatsApp = () => {
     const id = orderId || "";
