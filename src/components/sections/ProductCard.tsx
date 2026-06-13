@@ -64,6 +64,8 @@ export default function ProductCard({ product }: Props) {
       originalPrice: product["Harga RM"],
       quantity: modalQty,
       variasi: selectedVariasi,
+      shippingClass: product["Shipping Class"],
+      maxStock: product.Stok,
     });
     setModalOpen(false);
     setAdded(true);
@@ -85,6 +87,8 @@ export default function ProductCard({ product }: Props) {
       price: displayPrice,
       originalPrice: product["Harga RM"],
       quantity: 1,
+      shippingClass: product["Shipping Class"],
+      maxStock: product.Stok,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);

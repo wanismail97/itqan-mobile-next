@@ -46,20 +46,21 @@ function usePromoValidation(cartTotal: number) {
   return { promoCode, discountAmount, promoInput, setPromoInput, promoError, promoLoading, handleApplyPromo, removePromo };
 }
 
-function useShippingCalculation(hasProducts: boolean) {
+function useShippingCalculation(
+  shippingItems: Array<{ shippingClass?: string; quantity: number }> | null
+) {
   const { shippingFee, setShippingFee } = useCart();
+  const serialized = shippingItems === null ? null : JSON.stringify(shippingItems);
 
   useEffect(() => {
+    if (serialized === null) return;
+    const items = JSON.parse(serialized) as Array<{ shippingClass?: string; quantity: number }>;
     async function fetchShipping() {
-      if (!hasProducts) {
-        setShippingFee(0);
-        return;
-      }
       try {
         const res = await fetch("/api/shipping/calculate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ hasProducts: true }),
+          body: JSON.stringify({ items }),
         });
         const data = await res.json();
         if (data.success) setShippingFee(data.shippingFee);
@@ -68,7 +69,7 @@ function useShippingCalculation(hasProducts: boolean) {
       }
     }
     fetchShipping();
-  }, [hasProducts, setShippingFee]);
+  }, [serialized, setShippingFee]);
 
   return shippingFee;
 }
@@ -76,7 +77,7 @@ import { formatRM } from "@/lib/utils";
 import { lookupPostcode } from "@/data/malaysia-postcodes";
 import Link from "next/link";
 import type { Produk } from "@/types/airtable";
-import type { CartItem } from "@/types/cart";
+import type { CartItem, ProductCartItem } from "@/types/cart";
 
 // ─── Local storage helpers ────────────────────────────────────────────────
 
@@ -201,6 +202,19 @@ export default function CheckoutClient() {
     if (skuParam) return true;
     return items.some((i) => i.type === "product");
   }, [fromCart, skuParam, items]);
+
+  // ─── Shipping items for rate calculation ───────────────────────────────
+  const shippingItems = useMemo(() => {
+    if (skuParam) {
+      const cartItem = items.find((i): i is ProductCartItem => i.type === "product" && i.SKU === skuParam);
+      if (cartItem) return [{ shippingClass: cartItem.shippingClass, quantity: qtyParam }];
+      if (directProduct) return [{ shippingClass: directProduct["Shipping Class"], quantity: qtyParam }];
+      return null; // directProduct not yet loaded — defer calculation
+    }
+    return items
+      .filter((i): i is ProductCartItem => i.type === "product")
+      .map((i) => ({ shippingClass: i.shippingClass, quantity: i.quantity }));
+  }, [skuParam, items, directProduct, qtyParam]);
 
   // ─── Fetch product from Airtable if needed ─────────────────────────────
   useEffect(() => {
@@ -393,7 +407,7 @@ export default function CheckoutClient() {
 
   // ─── Promo & Shipping calculations ─────────────────────────────────────
   const promo = usePromoValidation(checkoutTotal);
-  const shippingFee = useShippingCalculation(hasProducts);
+  const shippingFee = useShippingCalculation(shippingItems);
   const grandTotal = Math.max(0, checkoutTotal + shippingFee - promo.discountAmount);
 
   // ─── Redirect only when truly empty and not loading ────────────────────

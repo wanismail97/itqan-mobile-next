@@ -22,6 +22,10 @@ export interface ProductCartItem {
   quantity: number;
   /** Product variation selected by customer (e.g. "No Baru", "Port In") */
   variasi?: string;
+  /** Shipping class inherited from product at add-to-cart time */
+  shippingClass?: "Ringan" | "Pertengahan" | "Berat";
+  /** Available stock at add-to-cart time — used to cap qty in cart UI */
+  maxStock?: number;
 }
 
 /** A reload (top-up) item in the shopping cart */

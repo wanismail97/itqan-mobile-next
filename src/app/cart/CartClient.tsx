@@ -1,13 +1,15 @@
 // ─── Cart Client — Client-side cart management ────────────────────────────
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import StickyButtons from "@/components/layout/StickyButtons";
 import { useCart } from "@/lib/cart-context";
 import { formatRM } from "@/lib/utils";
 import Link from "next/link";
+import ProductCard from "@/components/sections/ProductCard";
+import type { Produk } from "@/types/airtable";
 
 // ─── Helper: extract a unique key from any cart item ────────────────────────
 function itemKey(item: { SKU?: string; type: string; id?: string; provider?: string; phoneNumber?: string; serviceName?: string; accountNumber?: string; customerName?: string }): string {
@@ -23,6 +25,7 @@ export default function CartClient() {
     itemCount,
     total,
     removeItem,
+    updateQuantity,
     clearCart,
     promoCode,
     discountAmount,
@@ -33,6 +36,18 @@ export default function CartClient() {
   const [promoInput, setPromoInput] = useState("");
   const [promoError, setPromoError] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
+  const [recentlyViewed, setRecentlyViewed] = useState<Produk[]>([]);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState("");
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("itqan_recently_viewed");
+      if (raw) setRecentlyViewed(JSON.parse(raw));
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const handleApplyPromo = async () => {
     const code = promoInput.trim().toUpperCase();
@@ -112,6 +127,17 @@ export default function CartClient() {
                   Servis
                 </Link>
               </div>
+              {/* ─── Recently Viewed ──────────────────────────────────── */}
+              {recentlyViewed.length > 0 && (
+                <div className="mt-12 text-left">
+                  <h3 className="text-lg font-semibold text-primary mb-4">Baru Dilihat</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {recentlyViewed.map((p) => (
+                      <ProductCard key={p.SKU} product={p} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -167,7 +193,46 @@ export default function CartClient() {
                             )}
                           </div>
                           <div className="flex items-center gap-4">
-                            <span className="text-sm text-gray-600">x{item.quantity}</span>
+                            <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                              <button
+                                onClick={() => updateQuantity(itemKey(item), item.quantity - 1)}
+                                className="px-2.5 py-1 text-gray-600 hover:bg-gray-50 transition text-sm font-medium min-w-[28px]"
+                                aria-label="Kurang"
+                              >
+                                −
+                              </button>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                value={editingKey === itemKey(item) ? editingValue : String(item.quantity)}
+                                onFocus={() => { setEditingKey(itemKey(item)); setEditingValue(String(item.quantity)); }}
+                                onChange={(e) => setEditingValue(e.target.value)}
+                                onBlur={() => {
+                                  const parsed = parseInt(editingValue, 10);
+                                  const max = item.maxStock;
+                                  if (!editingValue.trim() || isNaN(parsed) || parsed < 1) {
+                                    updateQuantity(itemKey(item), 1);
+                                  } else if (max != null && parsed > max) {
+                                    updateQuantity(itemKey(item), max);
+                                  } else {
+                                    updateQuantity(itemKey(item), parsed);
+                                  }
+                                  setEditingKey(null);
+                                  setEditingValue("");
+                                }}
+                                className="w-10 py-1 text-sm font-medium border-x border-gray-200 bg-gray-50 text-center focus:outline-none focus:bg-white"
+                                aria-label="Kuantiti"
+                              />
+                              <button
+                                onClick={() => updateQuantity(itemKey(item), item.quantity + 1)}
+                                disabled={item.maxStock != null && item.quantity >= item.maxStock}
+                                title={item.maxStock != null && item.quantity >= item.maxStock ? "Stok maksimum dicapai" : undefined}
+                                className="px-2.5 py-1 text-gray-600 hover:bg-gray-50 transition text-sm font-medium min-w-[28px] disabled:opacity-30 disabled:cursor-not-allowed"
+                                aria-label="Tambah"
+                              >
+                                +
+                              </button>
+                            </div>
                             <button
                               onClick={() => removeItem(itemKey(item))}
                               className="text-red-500 text-sm hover:text-red-700 transition"

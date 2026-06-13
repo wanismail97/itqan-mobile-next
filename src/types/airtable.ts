@@ -33,6 +33,8 @@ export interface ProdukFields {
   Ditonjolkan: boolean;
   /** Product highlights / key selling points — one per line (Long Text) */
   Highlights?: string;
+  /** Shipping class for rate calculation */
+  "Shipping Class"?: "Ringan" | "Pertengahan" | "Berat";
 }
 
 /** A product record with its Airtable ID merged in */

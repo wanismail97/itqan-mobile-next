@@ -123,6 +123,18 @@ export default function ProdukDetailClient({ product, allProducts, waPhone }: Pr
   const hasVariasi = variasiOptions.length > 0;
   const variasiValid = !hasVariasi || selectedVariasi !== "";
 
+  // ─── Track recently viewed ────────────────────────────────────────────
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("itqan_recently_viewed");
+      const list: Produk[] = raw ? JSON.parse(raw) : [];
+      const updated = [product, ...list.filter((p) => p.SKU !== product.SKU)].slice(0, 10);
+      localStorage.setItem("itqan_recently_viewed", JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+  }, [product.SKU]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ─── Fetch approved reviews on mount ─────────────────────────────────
   useEffect(() => {
     async function loadReviews() {
@@ -153,6 +165,8 @@ export default function ProdukDetailClient({ product, allProducts, waPhone }: Pr
       price: displayPrice,
       originalPrice: product["Harga RM"],
       quantity,
+      shippingClass: product["Shipping Class"],
+      maxStock: product.Stok,
       ...(hasVariasi ? { variasi: selectedVariasi } : {}),
     });
     setAdded(true);
