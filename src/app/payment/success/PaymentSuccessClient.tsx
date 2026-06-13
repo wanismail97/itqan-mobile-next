@@ -16,7 +16,9 @@ export default function PaymentSuccessClient() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
-  const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
+  const statusId = searchParams.get("status_id");
+
+  const [status, setStatus] = useState<"verifying" | "success" | "cancelled" | "error">("verifying");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -25,10 +27,10 @@ export default function PaymentSuccessClient() {
       setMessage("Tiada ID pesanan.");
       return;
     }
-    // Success page only shows UI — order fulfillment is handled by the
-    // server-to-server POST /api/payment/callback webhook from ToyyibPay.
-    setStatus("success");
-  }, [orderId]);
+    // status_id=1 = paid, status_id=3 = cancelled/failed
+    // Order fulfillment is handled solely by the server-to-server POST /api/payment/callback webhook.
+    setStatus(statusId === "1" ? "success" : "cancelled");
+  }, [orderId, statusId]);
 
   const handleWhatsApp = () => {
     const id = orderId || "";
@@ -52,6 +54,41 @@ export default function PaymentSuccessClient() {
               <p className="text-gray-500">
                 Sila tunggu sebentar.
               </p>
+            </div>
+          )}
+
+          {status === "cancelled" && (
+            <div className="text-center py-12">
+              <div className="text-7xl mb-6">❌</div>
+              <h1 className="text-2xl md:text-3xl font-bold text-primary mb-2">
+                Pembayaran Dibatalkan
+              </h1>
+              <p className="text-gray-500 mb-2">
+                Pembayaran tidak berjaya diselesaikan.
+              </p>
+              <p className="text-gray-500 mb-2">
+                Pesanan anda masih berstatus Menunggu Bayaran.
+              </p>
+              {orderId && (
+                <div className="bg-white rounded-xl shadow-sm p-6 mt-6 mb-6">
+                  <p className="text-sm text-gray-500 mb-1">No. Pesanan</p>
+                  <p className="text-lg font-mono font-bold text-primary">{orderId}</p>
+                </div>
+              )}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={handleWhatsApp}
+                  className="inline-flex items-center justify-center gap-2 bg-green-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-green-600 transition"
+                >
+                  Hubungi WhatsApp
+                </button>
+                <Link
+                  href="/"
+                  className="inline-flex items-center justify-center bg-accent text-primary px-8 py-3 rounded-full font-semibold hover:bg-accent/90 transition"
+                >
+                  Kembali ke Laman Utama
+                </Link>
+              </div>
             </div>
           )}
 
