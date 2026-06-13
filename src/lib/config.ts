@@ -11,6 +11,7 @@ export const airtableConfig = {
     reviews: process.env.AIRTABLE_REVIEWS_TABLE || "Reviews",
     kodPromo: process.env.AIRTABLE_KOD_PROMO_TABLE || "Kod Promo",
     shippingSettings: process.env.AIRTABLE_SHIPPING_TABLE || "Shipping Settings",
+    easyparcelConfig: "EasyParcel Config",
   },
 } as const;
 

@@ -14,6 +14,7 @@
 // 5. Return simple HTML success page
 
 import { NextRequest, NextResponse } from "next/server";
+import { updateEasyParcelTokens } from "@/lib/airtable";
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 
@@ -93,18 +94,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // ─── 7. Log tokens securely on server (NEVER expose to browser) ───
-    console.log("EasyParcel OAuth token obtained:", {
-      access_token: tokenData.access_token
-        ? `${tokenData.access_token.substring(0, 8)}...`
-        : "MISSING",
-      refresh_token: tokenData.refresh_token
-        ? `${tokenData.refresh_token.substring(0, 8)}...`
-        : "MISSING",
-      expires_at: tokenData.expires_at || "NOT_PROVIDED",
-      token_type: tokenData.token_type || "NOT_PROVIDED",
-      scope: tokenData.scope || "NOT_PROVIDED",
+    // ─── 7. Persist tokens to Airtable ────────────────────────────────
+    const persisted = await updateEasyParcelTokens({
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      expires_at: String(tokenData.expires_at || ""),
     });
+
+    if (!persisted) {
+      console.error("EasyParcel OAuth: Failed to persist tokens to Airtable");
+      return new NextResponse(
+        "<h1>EasyParcel OAuth Error</h1><p>Failed to persist EasyParcel tokens.</p>",
+        {
+          status: 500,
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        }
+      );
+    }
+
+    console.log("EasyParcel OAuth connected successfully");
 
     // ─── 8. Return simple success page ────────────────────────────────
     return new NextResponse(

@@ -706,3 +706,79 @@ export async function getApprovedReviewsBySku(sku: string): Promise<Review[]> {
     return [];
   }
 }
+
+// ─── EasyParcel OAuth Token Persistence ────────────────────────────────────
+
+type EasyParcelConfigKey = "access_token" | "refresh_token" | "expires_at";
+
+/**
+ * Update existing EasyParcel Config records in Airtable with new OAuth tokens.
+ *
+ * NEVER creates new records — only updates existing ones found by {Key}.
+ * Uses no-store cache to always write the latest tokens.
+ * Returns true if all three keys were updated successfully.
+ */
+export async function updateEasyParcelTokens(tokens: {
+  access_token: string;
+  refresh_token: string;
+  expires_at: string;
+}): Promise<boolean> {
+  try {
+    const tableName = airtableConfig.tables.easyparcelConfig;
+    const keys: EasyParcelConfigKey[] = ["access_token", "refresh_token", "expires_at"];
+
+    for (const key of keys) {
+      const value = tokens[key];
+      if (!value) {
+        console.error(`updateEasyParcelTokens: Missing token value for key "${key}"`);
+        return false;
+      }
+
+      // 1. Find the existing record by Key field
+      const findUrl = `${BASE_URL}/${encodeURIComponent(tableName)}?filterByFormula=${encodeURIComponent(`{Key} = "${key}"`)}`;
+      const findRes = await fetch(findUrl, {
+        headers,
+        cache: "no-store",
+      });
+
+      if (!findRes.ok) {
+        console.error(
+          `updateEasyParcelTokens: Airtable find error for key "${key}": ${findRes.status}`
+        );
+        return false;
+      }
+
+      const findData = await findRes.json();
+      if (!findData.records || findData.records.length === 0) {
+        console.error(
+          `updateEasyParcelTokens: Record not found for key "${key}"`
+        );
+        return false;
+      }
+
+      const recordId = findData.records[0].id;
+
+      // 2. PATCH the Value field
+      const updateUrl = `${BASE_URL}/${encodeURIComponent(tableName)}`;
+      const updateRes = await fetch(updateUrl, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({
+          records: [{ id: recordId, fields: { Value: value } }],
+        }),
+      });
+
+      if (!updateRes.ok) {
+        console.error(
+          `updateEasyParcelTokens: Airtable update error for key "${key}": ${updateRes.status}`
+        );
+        return false;
+      }
+    }
+
+    return true;
+  } catch (err) {
+    console.error("updateEasyParcelTokens exception:", err);
+    return false;
+  }
+}
