@@ -32,14 +32,50 @@ export default function PaymentSuccessClient() {
     // status_id=1 = paid, status_id=3 = cancelled/failed
     // Order fulfillment is handled solely by the server-to-server POST /api/payment/callback webhook.
     const isSuccess = statusId === "1";
+    const isCancelled = statusId === "3";
+
     setStatus(isSuccess ? "success" : "cancelled");
 
-    // Clean up pending cart after successful payment — avoid stale recovery
+    // ─── Successful payment: clean up all pending cart keys ──────────────
     if (isSuccess) {
       try {
         localStorage.removeItem("itqan_pending_cart");
+        localStorage.removeItem("itqan_pending_cart_restored");
       } catch {
         // localStorage unavailable — fail silently
+      }
+      return;
+    }
+
+    // ─── Cancelled payment: auto-restore cart once for navbar badge ─────
+    if (isCancelled) {
+      try {
+        // Guard: restore once only — prevent repeated restores on reload
+        if (localStorage.getItem("itqan_pending_cart_restored") === "1") return;
+
+        const raw = localStorage.getItem("itqan_pending_cart");
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (!data || !Array.isArray(data.items)) return;
+
+        // Restore cart items so CartProvider picks them up on remount
+        localStorage.setItem("itqan_cart", JSON.stringify(data.items));
+
+        // Restore promo if available
+        if (data.promoCode && typeof data.promoCode === "string") {
+          localStorage.setItem(
+            "itqan_promo",
+            JSON.stringify({ code: data.promoCode, discountAmount: data.discountAmount ?? 0 })
+          );
+        }
+
+        // Mark restored so subsequent reloads skip this block
+        localStorage.setItem("itqan_pending_cart_restored", "1");
+
+        // Full reload forces CartProvider remount → reads restored itqan_cart
+        window.location.reload();
+      } catch {
+        // Corrupt data — fail silently
       }
     }
   }, [orderId, statusId]);

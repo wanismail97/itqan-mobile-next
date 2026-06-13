@@ -412,27 +412,31 @@ export default function CartClient() {
                   </span>
                 </div>
 
-                <div className="border-t border-gray-200 pt-4 space-y-3">
+                <div className="border-t border-gray-200 pt-4 space-y-4">
                   <Link
                     href="/checkout?from=cart"
-                    className="block w-full text-center bg-accent text-primary py-3 rounded-lg font-semibold hover:bg-accent/90 transition"
+                    className="block w-full text-center bg-accent text-primary py-3 rounded-lg font-semibold hover:bg-accent/90 transition shadow-sm"
                   >
                     Checkout Sekarang
                   </Link>
 
-                  <Link
-                    href="/produk"
-                    className="block w-full text-center text-gray-600 py-2 hover:text-accent transition text-sm"
-                  >
-                    Terus Belanja
-                  </Link>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Link
+                      href="/produk"
+                      className="flex items-center justify-center gap-2 flex-1 text-primary border border-primary/30 rounded-xl py-3 font-medium text-sm hover:bg-primary/5 hover:border-primary/50 transition"
+                    >
+                      <span aria-hidden="true">&larr;</span>
+                      <span>Terus Belanja</span>
+                    </Link>
 
-                  <button
-                    onClick={clearCart}
-                    className="block w-full text-center text-red-500 py-2 hover:text-red-700 transition text-sm"
-                  >
-                    Kosongkan Bakul
-                  </button>
+                    <button
+                      onClick={clearCart}
+                      className="flex items-center justify-center gap-2 flex-1 text-red-500 border border-red-200 rounded-xl py-3 font-medium text-sm hover:bg-red-50 hover:border-red-300 transition"
+                    >
+                      <span aria-hidden="true">🗑</span>
+                      <span>Kosongkan Bakul</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </>
