@@ -16,6 +16,23 @@ const nextConfig = {
       },
     ],
   },
+  // ─── Scoped headers ──────────────────────────────────────────────────────
+  // Allow ONLY the /preorder-ktb route to be embedded as an iframe by
+  // dftrhadis.pondokgajahmati.com.my. All other routes are unaffected.
+  async headers() {
+    return [
+      {
+        source: "/preorder-ktb",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value:
+              "frame-ancestors 'self' https://dftrhadis.pondokgajahmati.com.my;",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
